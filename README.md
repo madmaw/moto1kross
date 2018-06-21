@@ -1,4 +1,4 @@
-#Moto 1kross
+# Moto 1kross
 
 Written before I found out that Motocross is motorcycles on a dirt track, not cars on a tarmac track. Unfortunately there's no oncoming motorcycle emoji, so here we are.
 
@@ -10,7 +10,7 @@ I made this for JS1K 2019 (although I made it in 2018, entries close in 2019 and
 
 [1k version (kind of) here](https://madmaw.github.io/moto1kross/dist/)
 
-##Build pipeline
+## Build pipeline
 
 I think most JS1K entries are crafted by hand, however I used a bunch of tools to help.
 
@@ -24,7 +24,7 @@ If you are doing a JS1K entry (particularly using TS) feel free to take a look a
 
 To run type `npm run serve` and go to localhost:8080
 
-##Minimisation tips
+## Minimisation tips
 
 I'll try not to cover off things I've seen elsewhere...
 
@@ -54,18 +54,18 @@ As much as I wanted to make a responsive web app, using constants (especially nu
 ### Arrays are better than maps
 Originally I started off using maps for vehicles and frames, however arrays, while less descriptive take up less space in the code. So
 
->rect = {
+> rect = {
 >    x: 0, 
 >    y: 0, 
 >    width: 1, 
 >    height: 1
->}
+> }
 
 vs
 
->rect = [0, 0, 1, 1];
+> rect = [0, 0, 1, 1];
 
-Even with the closure compiler renaming the member variables (width/height) the first one is still much more verbose. 
+Even with the closure compiler renaming the member variables (width/height) and using array accessors (rect[0]) the first one is still much more verbose. 
 
 ### Grunt to remove var declarations
 The Closure Compiler works magic for compression, however it won't change local variables to global variables (as it shouldn't). Having done it by hand in my previous entry, and having turned my code into an unreadable mess, I decided to automate. I added a Grunt task to strip out any `var` declarations. 
@@ -74,11 +74,12 @@ The Closure Compiler works magic for compression, however it won't change local 
 ### WTF is void 0?
 Something (the Closure Compiler or TypeScript) sometimes puts in `void 0` when you have an undeclared variable. It's not consistent, but the way to get around it was to use a ternary for initialisation. 
 
->let b; // = void 0
->if(x)
+> let b; /* = void 0*/
+> if(x) {
 >   b = 1;
-> else 
+> } else { 
 >   b = 2
+> }
 
 works better with
 
