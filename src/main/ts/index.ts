@@ -1,5 +1,5 @@
 // turn on everything
-const ALL_ON = false;
+const ALL_ON = true;
 // can accelerate/decelerate
 const SPEED_CONTROL = true || ALL_ON;
 // can turn left/right
@@ -353,7 +353,7 @@ while( j<trackLength ) {
     }
     // reuse zCurrent here for compression
     if( SCENERY && RANDOM_SCENERY_PLACEMENT ) {
-        zCurrent = Math.random();
+        zCurrent = randomValue;
     }
     if( SCENERY && (zCurrent > .8 && RANDOM_SCENERY_PLACEMENT || !RANDOM_SCENERY_PLACEMENT && !(j%9) || !j && CHECKERED_FLAG) ) {
         if( RANDOM_SCENERY_PLACEMENT ) {
@@ -487,7 +487,6 @@ if( LEFT_RIGHT_CONTROL || SPEED_CONTROL ) {
 
 xCurrent = 2; // roadWidth/2
 yCurrent = kindOfHalf;
-yCurrent = .5;
 if( !STORE_X_ROTATION ) {
     randomValue /= 97;
 }
