@@ -60,6 +60,9 @@ const FAST_SLOW = false || ALL_ON; // 1 byte?
 const WHITE_FILL = false || ALL_ON; 
 // expand the setTransform into multiple calls (doesn't seem to help compression)
 const EXPANDED_TRANSFORM = true;
+// acutally use .5 when we want half
+const HALF_IS_HALF = false || ALL_ON;
+
 
 const MOBILE_CONTROLS = false || ALL_ON;
 
@@ -101,7 +104,7 @@ let speed: number,
 let canvasWidth = FIXED_WIDTH && FIXED_HEIGHT?FIXED_WIDTH:a.width;
 let canvasHeight = FIXED_WIDTH&&FIXED_HEIGHT?FIXED_HEIGHT:a.height;
 
-let kindOfHalf = SMOOTH_COLOR_TERRAIN?.36:.5;
+let kindOfHalf = SMOOTH_COLOR_TERRAIN && !HALF_IS_HALF?.36:.5;
 
 keys = {};
 
@@ -486,6 +489,7 @@ if( LEFT_RIGHT_CONTROL || SPEED_CONTROL ) {
 
 xCurrent = 2; // roadWidth/2
 yCurrent = kindOfHalf;
+yCurrent = .5;
 if( !STORE_X_ROTATION ) {
     randomValue /= 97;
 }

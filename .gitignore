@@ -1,5 +1,8 @@
 # Node Modules
 node_modules/
 
+# js1k output
+dist/
+
 # VSCode crap
 .vscode/

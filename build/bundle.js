@@ -98,11 +98,12 @@ var ACCURATE_ANGLES = false || ALL_ON;
 var FAST_SLOW = false || ALL_ON;
 var WHITE_FILL = false || ALL_ON;
 var EXPANDED_TRANSFORM = true;
+var HALF_IS_HALF = false || ALL_ON;
 var MOBILE_CONTROLS = false || ALL_ON;
 var speed, then, diff, xRotTarget, yRotTarget, zRotTarget, zRotCurrent, xRotCurrent, yRotCurrent, zCurrent, xCurrent, yCurrent, keys, trackLength, lookAhead, track, scenery, vehicles, vehicleX, vehicleZ, roadWidth, i, j, yTargetTrackRotation, zTrackRotation, f, minLightness, x, xScale, yScale, scale, yTrackRotation, randomValue;
 var canvasWidth = FIXED_WIDTH && FIXED_HEIGHT ? FIXED_WIDTH : a.width;
 var canvasHeight = FIXED_WIDTH && FIXED_HEIGHT ? FIXED_HEIGHT : a.height;
-var kindOfHalf = SMOOTH_COLOR_TERRAIN ? .36 : .5;
+var kindOfHalf = SMOOTH_COLOR_TERRAIN && !HALF_IS_HALF ? .36 : .5;
 keys = {};
 speed = 0;
 then = 0;
@@ -400,6 +401,7 @@ if (LEFT_RIGHT_CONTROL || SPEED_CONTROL) {
 }
 xCurrent = 2;
 yCurrent = kindOfHalf;
+yCurrent = .5;
 if (!STORE_X_ROTATION) {
     randomValue /= 97;
 }
