@@ -1,5 +1,5 @@
 // turn on everything
-const ALL_ON = true;
+const ALL_ON = false;
 // can accelerate/decelerate
 const SPEED_CONTROL = true || ALL_ON;
 // can turn left/right
@@ -49,9 +49,9 @@ const CORRECT_LIGHTNESS = false || ALL_ON; // 2 bytes
 // do not allow really big FPS jumps
 const MAX_DIFF = false || ALL_ON;
 // use a fixed with for the canvas
-const FIXED_WIDTH = ALL_ON?0:997;
+const FIXED_WIDTH = true || ALL_ON?0:997;
 // use a fixed height for the canvas
-const FIXED_HEIGHT = ALL_ON?0:997;
+const FIXED_HEIGHT = true || ALL_ON?0:997;
 // correct frame positioning for x and z rotation
 const ACCURATE_ANGLES = false || ALL_ON;
 // slow down quickly, or at the same rate as going offroad
@@ -100,11 +100,6 @@ let speed: number,
     scale: number,
     yTrackRotation: number,
     randomValue: number;
-
-let canvasWidth = FIXED_WIDTH && FIXED_HEIGHT?FIXED_WIDTH:a.width;
-let canvasHeight = FIXED_WIDTH&&FIXED_HEIGHT?FIXED_HEIGHT:a.height;
-
-let kindOfHalf = SMOOTH_COLOR_TERRAIN && !HALF_IS_HALF?.36:.5;
 
 keys = {};
 
@@ -176,7 +171,10 @@ if( X_ROTATION && Z_ROTATION && STORE_X_ROTATION ) {
 }
 
 c.globalCompositeOperation = 'destination-over'
+let canvasWidth = FIXED_WIDTH && FIXED_HEIGHT?FIXED_WIDTH:a.width;
+let canvasHeight = FIXED_WIDTH && FIXED_HEIGHT?FIXED_HEIGHT:a.height;
 
+let kindOfHalf = SMOOTH_COLOR_TERRAIN && !HALF_IS_HALF?.36:.5;
 
 if( OTHER_VEHICLES ) {
     if( MULTIPLE_VEHICLES ) {
@@ -709,12 +707,9 @@ f = (now?: number) => {
     
     let previousZRotation = zRotation;
     let offsetX = -xCurrent - fr * Math.sin(yRotation);
-    let offsetY: number;
-    if( X_ROTATION && STORE_X_ROTATION ) {
-        offsetY = yCurrent - fr * Math.sin(xRotation);
-    } else {
-        offsetY = yCurrent;
-    }
+    let offsetY = X_ROTATION && STORE_X_ROTATION
+        ?yCurrent - fr * Math.sin(xRotation)
+        :yCurrent;
     let previousOffsetX = offsetX;
     let previousOffsetY = offsetY;
     while( i < lookAhead ) {
