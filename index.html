@@ -1,0 +1,33 @@
+﻿<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<html>
+<head>
+    <style>
+body {
+    border: 0;
+    margin: 0;
+    font-family: monospace;
+    white-space: nowrap;
+    text-align: center;
+    border-spacing: 0;
+    overflow: hidden;
+    width: 100%;
+}       
+    </style>
+</head>
+<body>
+    <canvas id="a"></canvas>
+    <script type='text/javascript'>
+        // set up shims
+        var canvas = document.getElementById('a');
+        var body = document.body;
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        a = canvas;
+        b = body;
+        c = canvas.getContext('2d');
+        d = document;
+        requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame || function(f){ setTimeout(f, 1000/30); };
+    </script>
+    <script type='text/javascript' src="build/bundle.js?__inline=true"></script>
+</body>
+</html>
