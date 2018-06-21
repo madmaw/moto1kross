@@ -1,5 +1,5 @@
 // turn on everything
-const ALL_ON = true;
+const ALL_ON = false;
 // can accelerate/decelerate
 const SPEED_CONTROL = true || ALL_ON;
 // can turn left/right
