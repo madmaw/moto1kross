@@ -1,5 +1,5 @@
 // turn on everything
-const ALL_ON = false;
+const ALL_ON = true;
 // can accelerate/decelerate
 const SPEED_CONTROL = true || ALL_ON;
 // can turn left/right
@@ -461,6 +461,7 @@ if( LEFT_RIGHT_CONTROL || SPEED_CONTROL ) {
                     alpha = e.alpha;
                 }
             }
+            alpha *= Math.cos(e.gamma/360 * Math.PI);
             
             if( zero == null ) {
                 zero = alpha;
