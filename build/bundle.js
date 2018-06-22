@@ -65,7 +65,7 @@
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
 var ALL_ON = true;
 var SPEED_CONTROL = true || ALL_ON;
@@ -92,8 +92,8 @@ var SMOOTH_COLOR_TERRAIN = true || ALL_ON;
 var SMOOTH_COLOR_SCENERY = true || ALL_ON;
 var CORRECT_LIGHTNESS = false || ALL_ON;
 var MAX_DIFF = false || ALL_ON;
-var FIXED_WIDTH = ALL_ON ? 0 : 997;
-var FIXED_HEIGHT = ALL_ON ? 0 : 997;
+var FIXED_WIDTH =  true ? 0 : 997;
+var FIXED_HEIGHT =  true ? 0 : 997;
 var ACCURATE_ANGLES = false || ALL_ON;
 var FAST_SLOW = false || ALL_ON;
 var WHITE_FILL = false || ALL_ON;
@@ -101,9 +101,6 @@ var EXPANDED_TRANSFORM = true;
 var HALF_IS_HALF = false || ALL_ON;
 var MOBILE_CONTROLS = false || ALL_ON;
 var speed, then, diff, xRotTarget, yRotTarget, zRotTarget, zRotCurrent, xRotCurrent, yRotCurrent, zCurrent, xCurrent, yCurrent, keys, trackLength, lookAhead, track, scenery, vehicles, vehicleX, vehicleZ, roadWidth, i, j, yTargetTrackRotation, zTrackRotation, f, minLightness, x, xScale, yScale, scale, yTrackRotation, randomValue;
-var canvasWidth = FIXED_WIDTH && FIXED_HEIGHT ? FIXED_WIDTH : a.width;
-var canvasHeight = FIXED_WIDTH && FIXED_HEIGHT ? FIXED_HEIGHT : a.height;
-var kindOfHalf = SMOOTH_COLOR_TERRAIN && !HALF_IS_HALF ? .36 : .5;
 keys = {};
 speed = 0;
 then = 0;
@@ -166,6 +163,9 @@ else {
     sceneryOffset = 1;
 }
 c.globalCompositeOperation = 'destination-over';
+var canvasWidth = FIXED_WIDTH && FIXED_HEIGHT ? FIXED_WIDTH : a.width;
+var canvasHeight = FIXED_WIDTH && FIXED_HEIGHT ? FIXED_HEIGHT : a.height;
+var kindOfHalf = SMOOTH_COLOR_TERRAIN && !HALF_IS_HALF ? .36 : .5;
 if (OTHER_VEHICLES) {
     if (MULTIPLE_VEHICLES) {
         for (j = 0; j < vehicleCount; j++) {
@@ -293,7 +293,7 @@ while (j < trackLength) {
         scenery.splice(sceneryOffset, 0, 0, 1, 0, 0, roadWidth / 2, .1);
     }
     if (SCENERY && RANDOM_SCENERY_PLACEMENT) {
-        zCurrent = Math.random();
+        zCurrent = randomValue;
     }
     if (SCENERY && (zCurrent > .8 && RANDOM_SCENERY_PLACEMENT || !RANDOM_SCENERY_PLACEMENT && !(j % 9) || !j && CHECKERED_FLAG)) {
         if (RANDOM_SCENERY_PLACEMENT) {
@@ -377,6 +377,7 @@ if (LEFT_RIGHT_CONTROL || SPEED_CONTROL) {
                     alpha = e.alpha;
                 }
             }
+            alpha *= Math.cos(e.gamma / 360 * Math.PI);
             if (zero_1 == null) {
                 zero_1 = alpha;
             }
@@ -401,7 +402,6 @@ if (LEFT_RIGHT_CONTROL || SPEED_CONTROL) {
 }
 xCurrent = 2;
 yCurrent = kindOfHalf;
-yCurrent = .5;
 if (!STORE_X_ROTATION) {
     randomValue /= 97;
 }
@@ -547,13 +547,9 @@ f = function (now) {
     var zRotation = (zRotTarget - zRotCurrent) * fr;
     var previousZRotation = zRotation;
     var offsetX = -xCurrent - fr * Math.sin(yRotation);
-    var offsetY;
-    if (X_ROTATION && STORE_X_ROTATION) {
-        offsetY = yCurrent - fr * Math.sin(xRotation);
-    }
-    else {
-        offsetY = yCurrent;
-    }
+    var offsetY = X_ROTATION && STORE_X_ROTATION
+        ? yCurrent - fr * Math.sin(xRotation)
+        : yCurrent;
     var previousOffsetX = offsetX;
     var previousOffsetY = offsetY;
     while (i < lookAhead) {
