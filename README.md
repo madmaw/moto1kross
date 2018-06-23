@@ -70,7 +70,6 @@ Even with the closure compiler renaming the member variables (width/height) and 
 ### Grunt to remove var declarations
 The Closure Compiler works magic for compression, however it won't change local variables to global variables (as it shouldn't). Having done it by hand in my previous entry, and having turned my code into an unreadable mess, I decided to automate. I added a Grunt task to strip out any `var` declarations. 
 
-
 ### WTF is void 0?
 Something (the Closure Compiler or TypeScript) sometimes puts in `void 0` when you have an undeclared variable. It's not consistent, but the way to get around it was to use a ternary for initialisation. 
 

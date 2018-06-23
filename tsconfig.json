@@ -11,7 +11,8 @@
     },
     "include": [
         "src/main/ts/**/*",
-        "src/main/d.ts/**/*"
+        "src/main/d.ts/**/*", 
+        "node_modules/bowser/typings.d.ts"
     ],
     "exclude": [
     ]

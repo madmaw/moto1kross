@@ -10,3 +10,4 @@ var onkeydown;
 var onkeyup;
 var addEventListener;
 var ontouchend;
+var bowser;
