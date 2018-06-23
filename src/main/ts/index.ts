@@ -1,5 +1,14 @@
+// comment this out for actual js1k build
+import * as bowser from 'bowser';
+
 // turn on everything
 const ALL_ON = true;
+
+// use a fixed with for the canvas
+const RESPONSIVE_WIDTH = true || ALL_ON?0:998;
+// use a fixed height for the canvas
+const RESPONSIVE_HEIGHT = true || ALL_ON?0:998;
+
 // can accelerate/decelerate
 const SPEED_CONTROL = true || ALL_ON;
 // can turn left/right
@@ -45,13 +54,9 @@ const SMOOTH_COLOR_TERRAIN = true || ALL_ON;
 // should scenery colour rotate perfectly back to 0
 const SMOOTH_COLOR_SCENERY = true || ALL_ON;
 // correct the ligtness to 100 in distance
-const CORRECT_LIGHTNESS = false || ALL_ON; // 2 bytes
+const CORRECT_LIGHTNESS = true || ALL_ON; // 2 bytes
 // do not allow really big FPS jumps
 const MAX_DIFF = false || ALL_ON;
-// use a fixed with for the canvas
-const FIXED_WIDTH = true || ALL_ON?0:997;
-// use a fixed height for the canvas
-const FIXED_HEIGHT = true || ALL_ON?0:997;
 // correct frame positioning for x and z rotation
 const ACCURATE_ANGLES = false || ALL_ON;
 // slow down quickly, or at the same rate as going offroad
@@ -62,6 +67,8 @@ const WHITE_FILL = false || ALL_ON;
 const EXPANDED_TRANSFORM = true;
 // acutally use .5 when we want half
 const HALF_IS_HALF = false || ALL_ON;
+// attempt to detect OS and choose emoji correctly
+const EMOJI_DETECT = false || ALL_ON;
 
 
 const MOBILE_CONTROLS = false || ALL_ON;
@@ -130,19 +137,13 @@ roadWidth = 4;
 let vehicleCount = 4;
 //vehicleCharacters = ['🚕', '🚌', '🚓', '🚗'];
 let vehicleCharacter = 
-    MOBILE_CONTROLS && 
-    (navigator.userAgent.match(/Android/i)
-    || navigator.userAgent.match(/webOS/i)
-    || navigator.userAgent.match(/iPhone/i)
-    || navigator.userAgent.match(/iPad/i)
-    || navigator.userAgent.match(/iPod/i)
-    || navigator.userAgent.match(/BlackBerry/i)
-    || navigator.userAgent.match(/Windows Phone/i))
-    ?'🚘'
-    :'\ud83d\ude97'; // 🚗
-trackLength = 997;
-// 97 = the last two characters of the escaped car character \ud83d\ude97
-lookAhead = 97;
+    EMOJI_DETECT && 
+    bowser.windows && bowser.osversion <= 7
+    ?'\ud83d\ude97'
+    :'🚘'; // 🚗
+trackLength = 998;
+// 98 = the last two characters of the escaped car character \ud83d\ude98
+lookAhead = 98;
 track = [];
 vehicles = [];
 
@@ -171,8 +172,8 @@ if( X_ROTATION && Z_ROTATION && STORE_X_ROTATION ) {
 }
 
 c.globalCompositeOperation = 'destination-over'
-let canvasWidth = FIXED_WIDTH && FIXED_HEIGHT?FIXED_WIDTH:a.width;
-let canvasHeight = FIXED_WIDTH && FIXED_HEIGHT?FIXED_HEIGHT:a.height;
+let canvasWidth = RESPONSIVE_WIDTH && RESPONSIVE_HEIGHT?RESPONSIVE_WIDTH:a.width;
+let canvasHeight = RESPONSIVE_WIDTH && RESPONSIVE_HEIGHT?RESPONSIVE_HEIGHT:a.height;
 
 let kindOfHalf = SMOOTH_COLOR_TERRAIN && !HALF_IS_HALF?.36:.5;
 
@@ -205,9 +206,9 @@ while( j<trackLength ) {
     //trackRotation = (Math.random() - .5)*Math.PI / 99;
     //rot = 0;
     randomValue = Math.random();
-    let xTrackRotation = (Math.sin(j/lookAhead) - 1)/97 + yTrackRotation;
+    let xTrackRotation = (Math.sin(j/lookAhead) - 1)/98 + yTrackRotation;
     j++;
-    if( !(j % 36) && (randomValue*97)&1 ) {
+    if( !(j % 36) && (randomValue*98)&1 ) {
         //yTrackRotation = (randomValue - yTargetTrackRotation)*2/lookAhead;
         yTrackRotation = (randomValue - yTargetTrackRotation)*2/lookAhead;
         yTargetTrackRotation = randomValue;
@@ -241,8 +242,8 @@ while( j<trackLength ) {
                     ?j * .36
                     :j, // hue
                 36, // saturation
-                -97, // x
-                997, // width
+                -98, // x
+                998, // width
     
             ];
     
@@ -273,8 +274,8 @@ while( j<trackLength ) {
                     ?j * .36
                     :j, // hue
                 36, // saturation
-                -97, // x
-                997, // width
+                -98, // x
+                998, // width
     
             ];    
     
@@ -302,8 +303,8 @@ while( j<trackLength ) {
                 ?j * .36
                 :j, // hue
             36, // saturation
-            -97, // x
-            997, // width
+            -98, // x
+            998, // width
 
         ]; 
     } else {
@@ -327,8 +328,8 @@ while( j<trackLength ) {
                 ?j * .36
                 :j, // hue
             36, // saturation
-            -997, // x
-            997, // width
+            -998, // x
+            998, // width
     
             0, // type (box)
             kindOfHalf, // min lightness
@@ -337,7 +338,7 @@ while( j<trackLength ) {
                 :j, // hue
             36, // saturation
             roadWidth, // x
-            997, // width    
+            998, // width    
         );
     
     } 
@@ -376,8 +377,8 @@ while( j<trackLength ) {
                     (j||!CHECKERED_FLAG)?kindOfHalf:0, 
                     (SMOOTH_COLOR_SCENERY
                         ?j * .36
-                        :j)+97, // hue
-                    (j||!CHECKERED_FLAG)?97:0,
+                        :j)+98, // hue
+                    (j||!CHECKERED_FLAG)?98:0,
                     (j||!CHECKERED_FLAG)?xScale:.1,
                     // use the fraction to generate the y scale
                     // compresses this bit better if we reuse zCurrent
@@ -391,8 +392,8 @@ while( j<trackLength ) {
                     (j||!CHECKERED_FLAG)?kindOfHalf:0, 
                     (SMOOTH_COLOR_SCENERY
                         ?j * .36
-                        :j)+97, 
-                    (j||!CHECKERED_FLAG)?97:0,
+                        :j)+98, 
+                    (j||!CHECKERED_FLAG)?98:0,
                     xScale,
                     // compresses this bit better if we reuse zCurrent
                     yScale,
@@ -404,8 +405,8 @@ while( j<trackLength ) {
             scenery.push(
                 2, // type (box) - y
                 kindOfHalf, // min lightness
-                j + 97, // hue
-                97, // saturation
+                j + 98, // hue
+                98, // saturation
                 x, // x1
                 2, // width                    
             )
@@ -423,7 +424,7 @@ if( LEFT_RIGHT_CONTROL || SPEED_CONTROL ) {
     }    
 
     if( MOBILE_CONTROLS ) {
-        ontouchstart = ontouchend = (e: TouchEvent) => {
+        window.ontouchstart = window.ontouchend = (e: TouchEvent) => {
             e.preventDefault();
             switch(e.touches.length) {
                 case 0:
@@ -489,7 +490,7 @@ if( LEFT_RIGHT_CONTROL || SPEED_CONTROL ) {
 xCurrent = 2; // roadWidth/2
 yCurrent = kindOfHalf;
 if( !STORE_X_ROTATION ) {
-    randomValue /= 97;
+    randomValue /= 98;
 }
 // could reset zCurrent, but it's not that important
 //zCurrent = 0;
@@ -522,9 +523,9 @@ f = (now?: number) => {
         slowingFactor = 5e3;
     } else {
         if( FAST_SLOW ) {
-            slowingFactor = 797;
+            slowingFactor = 798;
         } else {
-            slowingFactor = 997;
+            slowingFactor = 998;
         }
     }
     if( SPEED_CONTROL ) {
@@ -587,7 +588,7 @@ f = (now?: number) => {
                             vehicleCharacter, 
                             kindOfHalf, 
                             36 * j, 
-                            97,
+                            98,
                             .1,
                             .1,
                             newFrameIndex - vehicleZ,
@@ -598,7 +599,7 @@ f = (now?: number) => {
                             vehicleCharacter, 
                             kindOfHalf, 
                             36 * j, 
-                            97,
+                            98,
                             .1,
                             .1,
                             vehicleX,                            
@@ -610,14 +611,14 @@ f = (now?: number) => {
                         1, // height
                         .4, // lightness
                         36 * j, // hue
-                        97, // saturation
+                        98, // saturation
                         vehicleX, //x
                         2, // width
 
                         1.3, // height
                         .6, // lightness
                         36 * j, // hue
-                        97, // saturation
+                        98, // saturation
                         vehicleX+.1, //x
                         1.6, // width
                     );
@@ -649,7 +650,7 @@ f = (now?: number) => {
                         vehicleCharacter, 
                         kindOfHalf, 
                         0, 
-                        97,
+                        98,
                         .1,
                         .1,
                         newFrameIndex - vehicleZ,
@@ -660,7 +661,7 @@ f = (now?: number) => {
                         vehicleCharacter, 
                         kindOfHalf, 
                         0, 
-                        97,
+                        98,
                         .1,
                         .1,
                         vehicleX,                            
@@ -672,14 +673,14 @@ f = (now?: number) => {
                     .6, // height
                     .4, // lightness
                     0, // hue
-                    97, // saturation
+                    98, // saturation
                     vehicleX, //x
                     2, // width
 
                     1, // height
                     .6, // lightness
                     0, // hue
-                    97, // saturation
+                    98, // saturation
                     vehicleX+.1, //x
                     1.6, // width
 
@@ -746,7 +747,7 @@ f = (now?: number) => {
                 let type = scenery[j++];
                 minLightness = scenery[j++];
                 let lightness = CORRECT_LIGHTNESS
-                    ?(i * (1 - minLightness) + minLightness * lookAhead) + 3
+                    ?(i * (1 - minLightness) + minLightness * lookAhead) + 2
                     :(i * (1 - minLightness) + minLightness * lookAhead);
                 c.fillStyle = `hsl(${scenery[j++]},${scenery[j++]}%,${lightness}%)`;
 
@@ -923,9 +924,9 @@ f = (now?: number) => {
                         c.fill();        
                     } else {
                         if( USE_EMOJIS ) {
-                            c.fillRect(x, j/997, width, 9);
+                            c.fillRect(x, j/998, width, 9);
                         } else {
-                            c.fillRect(x, -type + j/997, width, 9);
+                            c.fillRect(x, -type + j/998, width, 9);
                         }
                     }
                 }

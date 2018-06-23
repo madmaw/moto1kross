@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/madmaw/moto1kross#readme",
   "devDependencies": {
+    "bowser": "^1.9.3",
     "grunt": "^1.0.3",
     "grunt-closure-compiler": "0.0.21",
     "grunt-contrib-clean": "^1.1.0",
