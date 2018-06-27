@@ -36,12 +36,34 @@ Reg Pack works best when the same string appears multiple times. I noticed that 
 
 Similarly I had to use .36 to make the hue roll around to its starting value so I used that instead of .5 for all my constants. 
 
-### Closure Compiler as a preprocessor
-Closure compiler will detect and remove dead code blocks, which means you can set flags in your code and have it remove them at compile time. This is invaluable as you approact 1024 kb as you can toggle features on/off to hit the limit. Unfortunately it doesn't have macros, so you can end up with lots of duplication in your code 
+Look for patterns in your minified code and try to engineer your unminified code so that variables are named the same where you see common patterns to maximise compression. 
 
+### Closure Compiler as a preprocessor
+Closure compiler will detect and remove dead code blocks, which means you can set flags in your code and have it remove them at compile time. This is invaluable as you approact 1024 kb as you can toggle features on/off to hit the limit. 
+
+It will also evaluate some (although not all) mathematical expressions and inline constants into your code. 
+
+### Assignment is the devil
+If you see `x=` a lot in your minified code, it's often a sign that you can inline an expression somewhere. So, a trivial example (although the Closure Compiler should have done this one for you already)
+
+`x=1;Math.sin(x);`
+
+can be shortened to
+
+`Math.sin(1);`
+
+Treat all assignments with suspicion, see how many times that assigned-to variable is used, if it's only once (or possibly even twice), then just inline the expression you are assigning. Each assignment costs you at least 2 bytes so make sure they count. 
 
 ### Canvas setTransform and transform
-I'd never used these methods before, but they're really powerful. If you find yourself using save(), restore(), rotate(), scale(), and translate() a lot, you might find that setTransform() and transform() can save you a lot of space. 
+I'd never used these methods before, but they're really powerful. If you find yourself using save(), restore(), rotate(), scale(), and translate() a lot, you might find that setTransform() and transform() can save you a lot of space. I'd say 2 calls to `transform` and one call to `setTransform` (to reset the transformation matrix) saved me 
+
+- 1x save
+- 1x restore
+- 2x translate
+- 1x scale (+1 if you switch on emojis)
+- 1x rotate
+
+Although I did have to call sin/cos a few additional times. 
 
 My original plan was to calculate the matrix multplications by hand and apply them all in one big call to setTransform() however this turned out to be more verbose than 3 individual calls to transform(). 
 
@@ -89,3 +111,16 @@ You can get a lot of randomness out of one random number by multiplying it by di
 
 ### Array initialization is much cheaper than calling push
 Try to get as much stuff into your array initializers as possible, or call push/unshif/splice with as many varargs as you can 
+
+### Array assignment is cheaper than calling push
+If you are just adding one value, and you have the index you are pushing to handy, you're better off just assigning into the array directly. 
+
+> a[x] = 1;
+
+vs
+
+> a.push(1);
+
+or even better, assuming you are incrementing x somewhere else 
+
+> a[x++] = 1;

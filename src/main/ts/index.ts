@@ -1,13 +1,14 @@
 // comment this out for actual js1k build
-import * as bowser from 'bowser';
+//import * as bowser from 'bowser';
 
 // turn on everything
 const ALL_ON = true;
 
+const RESPONSIVE = true;
 // use a fixed with for the canvas
-const RESPONSIVE_WIDTH = true || ALL_ON?0:998;
+const RESPONSIVE_WIDTH = RESPONSIVE || ALL_ON?0:998;
 // use a fixed height for the canvas
-const RESPONSIVE_HEIGHT = true || ALL_ON?0:998;
+const RESPONSIVE_HEIGHT = RESPONSIVE || ALL_ON?0:998;
 
 // can accelerate/decelerate
 const SPEED_CONTROL = true || ALL_ON;
@@ -19,10 +20,12 @@ const OTHER_VEHICLES = true || ALL_ON;
 const FAIR_VEHICLES = false && OTHER_VEHICLES || ALL_ON;
 // are there multiple vehicles or just one
 const MULTIPLE_VEHICLES = false && OTHER_VEHICLES || ALL_ON; // big
+// do non-emoji vehicles tyres flicker as they drive
+const FLICKERING_TYRES = true || ALL_ON;
 // is there scenery
 const SCENERY = true || ALL_ON;
 // is the scenery placed randomly or evenly
-const RANDOM_SCENERY_PLACEMENT = false && SCENERY || ALL_ON; 
+const RANDOM_SCENERY_PLACEMENT = false && SCENERY; 
 // are there center lines
 const CENTER_LINES = true || ALL_ON;
 // is there a lap marker 
@@ -32,9 +35,9 @@ const CLEAN_ROADS = false || ALL_ON;
 // do the roads change colour slightly
 const SHADED_ROADS = true || ALL_ON; 
 // should we draw scenery and cars as emojis
-const USE_EMOJIS = true || ALL_ON; // big
+const USE_EMOJIS = false; // big
 // are the roads smooth or blocky
-const SMOOTH_ROADS = false && USE_EMOJIS || ALL_ON; // big
+const SMOOTH_ROADS = (false || ALL_ON)&& USE_EMOJIS ; // big
 // can be roate the terrain on the x axis
 const X_ROTATION = true || ALL_ON; // big
 // can be roate the terrain on the z axis
@@ -50,17 +53,17 @@ const SCALE_Z_PROGRESS = false || ALL_ON; // big
 // display a checkered flag when lapping
 const CHECKERED_FLAG = false || ALL_ON;
 // should terrain color rotate perfectly back to 0 
-const SMOOTH_COLOR_TERRAIN = true || ALL_ON;
+const SMOOTH_COLOR_TERRAIN = false || ALL_ON;
 // should scenery colour rotate perfectly back to 0
-const SMOOTH_COLOR_SCENERY = true || ALL_ON;
+const SMOOTH_COLOR_SCENERY = false || ALL_ON;
 // correct the ligtness to 100 in distance
-const CORRECT_LIGHTNESS = true || ALL_ON; // 2 bytes
+const CORRECT_LIGHTNESS = false || ALL_ON; // 2 bytes
 // do not allow really big FPS jumps
 const MAX_DIFF = false || ALL_ON;
 // correct frame positioning for x and z rotation
 const ACCURATE_ANGLES = false || ALL_ON;
 // slow down quickly, or at the same rate as going offroad
-const FAST_SLOW = false || ALL_ON; // 1 byte?
+const FAST_SLOW = true || ALL_ON; // 1 byte?
 // fill the background with a white colour for screenshots (usually transparent)
 const WHITE_FILL = false || ALL_ON; 
 // expand the setTransform into multiple calls (doesn't seem to help compression)
@@ -137,6 +140,7 @@ roadWidth = 4;
 let vehicleCount = 4;
 //vehicleCharacters = ['🚕', '🚌', '🚓', '🚗'];
 let vehicleCharacter = 
+    USE_EMOJIS &&
     EMOJI_DETECT && 
     bowser.windows && bowser.osversion <= 7
     ?'\ud83d\ude97'
@@ -175,14 +179,14 @@ c.globalCompositeOperation = 'destination-over'
 let canvasWidth = RESPONSIVE_WIDTH && RESPONSIVE_HEIGHT?RESPONSIVE_WIDTH:a.width;
 let canvasHeight = RESPONSIVE_WIDTH && RESPONSIVE_HEIGHT?RESPONSIVE_HEIGHT:a.height;
 
-let kindOfHalf = SMOOTH_COLOR_TERRAIN && !HALF_IS_HALF?.36:.5;
+let kindOfHalf = SMOOTH_COLOR_TERRAIN && !HALF_IS_HALF?.36:.3;
 
 if( OTHER_VEHICLES ) {
     if( MULTIPLE_VEHICLES ) {
         for ( j=0; j<vehicleCount; j++ ) {
             vehicles.push(
                 //x
-                (j%2) * 2 + .5, 
+                (j%2) * 2, 
                 // z
                 j * 9
             );
@@ -207,8 +211,8 @@ while( j<trackLength ) {
     //rot = 0;
     randomValue = Math.random();
     let xTrackRotation = (Math.sin(j/lookAhead) - 1)/98 + yTrackRotation;
-    j++;
-    if( !(j % 36) && (randomValue*98)&1 ) {
+    //j++;
+    if( j && !(j % 36) && (randomValue*98)&1 ) {
         //yTrackRotation = (randomValue - yTargetTrackRotation)*2/lookAhead;
         yTrackRotation = (randomValue - yTargetTrackRotation)*2/lookAhead;
         yTargetTrackRotation = randomValue;
@@ -262,7 +266,11 @@ while( j<trackLength ) {
                 zTrackRotation,
     
                 0, // type (box)
-                minLightness, // min lightness
+                !j && LAP_MARKER
+                    ?1
+                    :(SHADED_ROADS)
+                        ?(((j / 6) | 0) % 2) * .1
+                        :0, // min lightness
                 0, // hue
                 0, // saturation
                 0, // x
@@ -273,7 +281,7 @@ while( j<trackLength ) {
                 SMOOTH_COLOR_TERRAIN
                     ?j * .36
                     :j, // hue
-                36, // saturation
+                50, // saturation
                 -98, // x
                 998, // width
     
@@ -342,6 +350,9 @@ while( j<trackLength ) {
         );
     
     } 
+    //track.push(scenery);
+    track[j++] = scenery;
+
     if( j % 3 && CENTER_LINES ) {
         scenery.splice(sceneryOffset, 0, 
             0, // type
@@ -357,20 +368,20 @@ while( j<trackLength ) {
         zCurrent = randomValue;
     }
     if( SCENERY && (zCurrent > .8 && RANDOM_SCENERY_PLACEMENT || !RANDOM_SCENERY_PLACEMENT && !(j%9) || !j && CHECKERED_FLAG) ) {
-        if( RANDOM_SCENERY_PLACEMENT ) {
-            yScale = zCurrent;
-            zCurrent *= 9;
-            xScale = (zCurrent & 1) * 2 - 1
-            x = zCurrent & 1
-                ?roadWidth + zCurrent
-                :-zCurrent
-        } else {
-            //x = j%2 * roadWidth - (1 - j%2) * 2;
-            x = j%2?roadWidth:-1;
-            xScale = j%2?kindOfHalf:-kindOfHalf;
-            yScale = kindOfHalf;
-        }
         if( USE_EMOJIS ) {
+            if( RANDOM_SCENERY_PLACEMENT ) {
+                yScale = zCurrent;
+                zCurrent *= 9;
+                xScale = (zCurrent & 1) * 2 - 1
+                x = zCurrent & 1
+                    ?roadWidth + zCurrent
+                    :-zCurrent
+            } else {
+                //x = j%2 * roadWidth - (1 - j%2) * 2;
+                x = j%2?roadWidth:-1;
+                xScale = j%2?kindOfHalf:-kindOfHalf;
+                yScale = kindOfHalf;
+            }
             if( SCALE_Z_PROGRESS ) {
                 scenery.push(
                     (j||!CHECKERED_FLAG)?sceneryCharacter:'🏁', 
@@ -402,18 +413,38 @@ while( j<trackLength ) {
     
             }
         } else {
+            x = j%2?roadWidth+4:-6;
+    
             scenery.push(
-                2, // type (box) - y
+                4, // type (box) - y
                 kindOfHalf, // min lightness
-                j + 98, // hue
+                (SMOOTH_COLOR_SCENERY
+                    ?j * .36
+                    :j)+98, // hue
                 98, // saturation
                 x, // x1
-                2, // width                    
+                2, // width     
+                3, // height               
+
+                1, // type (box) - y
+                kindOfHalf, // min lightness
+                0, // hue
+                9, // saturation
+                x+1, // x1
+                .1, // width     
+                1, // height               
+
+                9, // type box - y
+                kindOfHalf, 
+                -j, 
+                98, 
+                randomValue*roadWidth, 
+                1, 
+                1
             )
         }
     }
     
-    track.push(scenery);
 }
 if( LEFT_RIGHT_CONTROL || SPEED_CONTROL ) {
     onkeydown = (e: KeyboardEvent) => {
@@ -488,7 +519,7 @@ if( LEFT_RIGHT_CONTROL || SPEED_CONTROL ) {
 
 
 xCurrent = 2; // roadWidth/2
-yCurrent = kindOfHalf;
+yCurrent = .5;
 if( !STORE_X_ROTATION ) {
     randomValue /= 98;
 }
@@ -577,7 +608,7 @@ f = (now?: number) => {
                             ?SCALE_Z_PROGRESS
                                 ?8
                                 :7
-                            :12);
+                            :35);
                 }
                 vehicleZ += diff / (83 - j * 9 + vehicleZ - zCurrent);
                 let newFrameIndex = (vehicleZ | 0)+1;
@@ -607,46 +638,79 @@ f = (now?: number) => {
                     }
                 } else {
                     newFrame.splice(sceneryOffset, 0,
+                        // windshield
+                        .8, // y
+                        1, // lightness
+                        0, // hue
+                        0, // saturation
+                        vehicleX + .4, //x
+                        1, // width
+                        .3, // height
+    
+                        // roof
+                        .9, // y
+                        .5, // lightness
+                        36 * j, // hue
+                        98, // saturation
+                        vehicleX + .3, //x
+                        1.2, // width
+                        .4, // height
+                        
+                        
                         // body
-                        1, // height
-                        .4, // lightness
+                        .6, // y
+                        kindOfHalf, // lightness
                         36 * j, // hue
                         98, // saturation
-                        vehicleX, //x
-                        2, // width
-
-                        1.3, // height
-                        .6, // lightness
-                        36 * j, // hue
-                        98, // saturation
-                        vehicleX+.1, //x
-                        1.6, // width
+                        vehicleX + .2, //x
+                        1.4, // width
+                        .5, // height
+    
+                        // left tyre
+                        .1, // y
+                        FLICKERING_TYRES?vehicleZ%kindOfHalf:.1, // lightness
+                        0, // hue
+                        0, // saturation
+                        vehicleX + .3, //x
+                        .3, // width
+                        .1, // height
+    
+                        // right tyre
+                        .1, // y
+                        FLICKERING_TYRES?vehicleZ%kindOfHalf:.1, // lightness
+                        0, // hue
+                        0, // saturation
+                        vehicleX + 1.2, //x
+                        .3, // width
+                        .1, // height
+                        
                     );
+
 
                 }
                 vehicles[j++] = vehicleZ;
             }    
         } else {
-            let oldFrame = track[((vehicleZ | 0)+1)%trackLength];
+            scenery = track[((vehicleZ | 0)+1)%trackLength];
             if( now ) {
-                oldFrame.splice(
+                scenery.splice(
                     sceneryOffset, 
                     USE_EMOJIS
                         ?SCALE_Z_PROGRESS
                             ?8
                             :7
-                        :12);
+                        :35);
             }
             if( FAIR_VEHICLES ) {
-                vehicleZ += diff / (23 + vehicleZ - zCurrent) * Math.cos(oldFrame[yRotationOffset]);
+                vehicleZ += diff / (23 + vehicleZ - zCurrent) * (1 - Math.sin(scenery[yRotationOffset]*2));
             } else {
                 vehicleZ += diff / (23 + vehicleZ - zCurrent);
             }
             let newFrameIndex = (vehicleZ | 0)+1;
-            let newFrame = track[newFrameIndex%trackLength];
+            scenery = track[newFrameIndex%trackLength];
             if( USE_EMOJIS ) {
                 if( SCALE_Z_PROGRESS ) {
-                    newFrame.splice(sceneryOffset, 0,
+                    scenery.splice(sceneryOffset, 0,
                         vehicleCharacter, 
                         kindOfHalf, 
                         0, 
@@ -657,7 +721,7 @@ f = (now?: number) => {
                         vehicleX,                            
                     );        
                 } else {
-                    newFrame.splice(sceneryOffset, 0,
+                    scenery.splice(sceneryOffset, 0,
                         vehicleCharacter, 
                         kindOfHalf, 
                         0, 
@@ -668,22 +732,52 @@ f = (now?: number) => {
                     );        
                 }
             } else {
-                newFrame.splice(sceneryOffset, 0,
+                scenery.splice(sceneryOffset, 0,
+                    // windshield
+                    .8, // y
+                    1, // lightness
+                    0, // hue
+                    0, // saturation
+                    .4, //x
+                    1, // width
+                    .3, // height
+
+                    // roof
+                    .9, // y
+                    .5, // lightness
+                    0, // hue
+                    98, // saturation
+                    .3, //x
+                    1.2, // width
+                    .4, // height
+                    
+                    
                     // body
-                    .6, // height
-                    .4, // lightness
+                    .6, // y
+                    kindOfHalf, // lightness
                     0, // hue
                     98, // saturation
-                    vehicleX, //x
-                    2, // width
+                    .2, //x
+                    1.4, // width
+                    .5, // height
 
-                    1, // height
-                    .6, // lightness
+                    // left tyre
+                    .1, // y
+                    FLICKERING_TYRES?vehicleZ%kindOfHalf:.1, // lightness
                     0, // hue
-                    98, // saturation
-                    vehicleX+.1, //x
-                    1.6, // width
+                    0, // saturation
+                    .3, //x
+                    .3, // width
+                    .1, // height
 
+                    // right tyre
+                    .1, // y
+                    FLICKERING_TYRES?vehicleZ%kindOfHalf:.1, // lightness
+                    0, // hue
+                    0, // saturation
+                    1.2, //x
+                    .3, // width
+                    .1, // height
                     
                 );
 
@@ -714,8 +808,6 @@ f = (now?: number) => {
     let previousOffsetX = offsetX;
     let previousOffsetY = offsetY;
     while( i < lookAhead ) {
-        let f = zCurrent + i;
-        let fi = f | 0;
         i++;
 
         //sinOrYTrackRotation = Math.sin(zRotation);
@@ -739,7 +831,8 @@ f = (now?: number) => {
                 offsetY += Math.sin(xRotation);
             }
         } 
-        scenery = track[fi%trackLength];
+
+        scenery = track[((zCurrent + i)| 0)%trackLength];
         if( i > 1 ) {
             // render the frame
             j = sceneryOffset;
@@ -790,7 +883,7 @@ f = (now?: number) => {
                     }
     
                     if( EXPANDED_TRANSFORM ) {
-                        c.setTransform(
+                        c.transform(
                             scaledScale, 
                             0, 
                             0, 
@@ -848,7 +941,7 @@ f = (now?: number) => {
                     }
     
                 } else {
-                    c.setTransform(
+                    c.transform(
                         scale, 
                         0, 
                         0, 
@@ -862,19 +955,20 @@ f = (now?: number) => {
                             Math.sin(zRotation), 
                             -Math.sin(zRotation), 
                             Math.cos(zRotation), 
-                            0, 
-                            0
+                            offsetX * Math.cos(zRotation) - offsetY * Math.sin(zRotation), 
+                            offsetY * Math.cos(zRotation) + offsetX * Math.sin(zRotation)
                         );    
+                    } else {
+                        c.transform(
+                            xScaling, 
+                            0, 
+                            0, 
+                            yScaling, 
+                            offsetX, 
+                            offsetY
+                        );    
+                            
                     }
-                    c.transform(
-                        xScaling, 
-                        0, 
-                        0, 
-                        yScaling, 
-                        offsetX, 
-                        offsetY
-                    );    
-
                 }
 
                 if( type && USE_EMOJIS && (SCENERY || OTHER_VEHICLES) ) {
@@ -926,12 +1020,12 @@ f = (now?: number) => {
                         if( USE_EMOJIS ) {
                             c.fillRect(x, j/998, width, 9);
                         } else {
-                            c.fillRect(x, -type + j/998, width, 9);
+                            c.fillRect(x, -type, width, type?scenery[j++]:9);
                         }
                     }
                 }
-
-            }    
+                c.setTransform(1, 0, 0, 1, 0, 0);
+            }
         }
         if( X_ROTATION ) {
             if( STORE_X_ROTATION ) {
@@ -950,7 +1044,6 @@ f = (now?: number) => {
         previousOffsetY = offsetY;
     }
 
-    c.setTransform(1, 0, 0, 1, 0, 0);
     if( WHITE_FILL) {
         c.fillStyle = '#fff';
         c.fillRect(0, 0, canvasWidth, canvasHeight);
