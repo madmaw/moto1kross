@@ -97,11 +97,12 @@ var SMOOTH_COLOR_SCENERY = false || ALL_ON;
 var CORRECT_LIGHTNESS = false || ALL_ON;
 var MAX_DIFF = false || ALL_ON;
 var ACCURATE_ANGLES = false || ALL_ON;
-var FAST_SLOW = true || ALL_ON;
+var FAST_SLOW = false || ALL_ON;
 var WHITE_FILL = false || ALL_ON;
 var EXPANDED_TRANSFORM = true;
 var HALF_IS_HALF = false || ALL_ON;
 var EMOJI_DETECT = false || ALL_ON;
+var HANDBRAKE_TURNS = true || ALL_ON;
 var MOBILE_CONTROLS = false || ALL_ON;
 var speed, then, diff, xRotTarget, yRotTarget, zRotTarget, zRotCurrent, xRotCurrent, yRotCurrent, zCurrent, xCurrent, yCurrent, keys, trackLength, lookAhead, track, scenery, vehicles, vehicleX, vehicleZ, roadWidth, i, j, yTargetTrackRotation, zTrackRotation, f, minLightness, x, xScale, yScale, scale, yTrackRotation, randomValue;
 keys = {};
@@ -184,7 +185,7 @@ while (j < trackLength) {
             : 0;
     randomValue = Math.random();
     var xTrackRotation = (Math.sin(j / lookAhead) - 1) / 98 + yTrackRotation;
-    if (j && !(j % 36) && (randomValue * 98) & 1) {
+    if (j && !(j % 49) && (randomValue * 98) & 1) {
         yTrackRotation = (randomValue - yTargetTrackRotation) * 2 / lookAhead;
         yTargetTrackRotation = randomValue;
     }
@@ -247,7 +248,7 @@ while (j < trackLength) {
                 SMOOTH_COLOR_TERRAIN
                     ? j * .36
                     : j,
-                50,
+                49,
                 -98,
                 998,
             ];
@@ -325,9 +326,9 @@ while (j < trackLength) {
         }
         else {
             x = j % 2 ? roadWidth + 4 : -6;
-            scenery.push(4, kindOfHalf, (SMOOTH_COLOR_SCENERY
+            scenery.splice(sceneryOffset, 0, 4, kindOfHalf, (SMOOTH_COLOR_SCENERY
                 ? j * .36
-                : j) + 98, 98, x, 2, 3, 1, kindOfHalf, 0, 9, x + 1, .1, 1, 9, kindOfHalf, -j, 98, randomValue * roadWidth, 1, 1);
+                : j) + 98, 98, x, 2, 3, 1, 0, 0, 9, x + 1, .1, 1, 9, kindOfHalf, -j, 98, randomValue * roadWidth, 1, 1);
         }
     }
 }
@@ -429,23 +430,28 @@ f = function (now) {
     }
     var zPreviousi = zCurrent | 0;
     if (LEFT_RIGHT_CONTROL) {
-        yRotCurrent += diff * ((keys[37] || 0) - (keys[39] || 0)) / 2e3;
+        if (HANDBRAKE_TURNS) {
+            yRotCurrent += diff * ((keys[37] || 0) - (keys[39] || 0)) * ((keys[49] || 0) + 2) / 3e3;
+        }
+        else {
+            yRotCurrent += diff * ((keys[37] || 0) - (keys[39] || 0)) / 1e3;
+        }
     }
     var dYRot = yRotCurrent - yRotTarget;
     var slowingFactor;
-    if (xCurrent > 0 && xCurrent < roadWidth && (!keys[40] || !SPEED_CONTROL) || !LEFT_RIGHT_CONTROL) {
+    if (xCurrent > 0 && xCurrent < roadWidth && (!keys[49] || !SPEED_CONTROL) || !LEFT_RIGHT_CONTROL) {
         slowingFactor = 5e3;
     }
     else {
         if (FAST_SLOW) {
-            slowingFactor = 798;
+            slowingFactor = 698;
         }
         else {
             slowingFactor = 998;
         }
     }
     if (SPEED_CONTROL) {
-        speed += diff * ((keys[38] || 0) / 8e4 - speed / slowingFactor);
+        speed += diff * ((keys[38] || 0) / 7e4 - speed / slowingFactor);
     }
     else {
         speed += diff * (1e-5 - speed / slowingFactor);

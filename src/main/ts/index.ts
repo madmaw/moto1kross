@@ -2,7 +2,7 @@
 //import * as bowser from 'bowser';
 
 // turn on everything
-const ALL_ON = true;
+const ALL_ON = false;
 
 const RESPONSIVE = true;
 // use a fixed with for the canvas
@@ -63,7 +63,7 @@ const MAX_DIFF = false || ALL_ON;
 // correct frame positioning for x and z rotation
 const ACCURATE_ANGLES = false || ALL_ON;
 // slow down quickly, or at the same rate as going offroad
-const FAST_SLOW = true || ALL_ON; // 1 byte?
+const FAST_SLOW = false || ALL_ON; // 1 byte?
 // fill the background with a white colour for screenshots (usually transparent)
 const WHITE_FILL = false || ALL_ON; 
 // expand the setTransform into multiple calls (doesn't seem to help compression)
@@ -72,6 +72,8 @@ const EXPANDED_TRANSFORM = true;
 const HALF_IS_HALF = false || ALL_ON;
 // attempt to detect OS and choose emoji correctly
 const EMOJI_DETECT = false || ALL_ON;
+// can we do handbrake turns?
+const HANDBRAKE_TURNS = true || ALL_ON;
 
 
 const MOBILE_CONTROLS = false || ALL_ON;
@@ -212,7 +214,7 @@ while( j<trackLength ) {
     randomValue = Math.random();
     let xTrackRotation = (Math.sin(j/lookAhead) - 1)/98 + yTrackRotation;
     //j++;
-    if( j && !(j % 36) && (randomValue*98)&1 ) {
+    if( j && !(j % 49) && (randomValue*98)&1 ) {
         //yTrackRotation = (randomValue - yTargetTrackRotation)*2/lookAhead;
         yTrackRotation = (randomValue - yTargetTrackRotation)*2/lookAhead;
         yTargetTrackRotation = randomValue;
@@ -281,7 +283,7 @@ while( j<trackLength ) {
                 SMOOTH_COLOR_TERRAIN
                     ?j * .36
                     :j, // hue
-                50, // saturation
+                49, // saturation
                 -98, // x
                 998, // width
     
@@ -415,7 +417,7 @@ while( j<trackLength ) {
         } else {
             x = j%2?roadWidth+4:-6;
     
-            scenery.push(
+            scenery.splice(sceneryOffset, 0,
                 4, // type (box) - y
                 kindOfHalf, // min lightness
                 (SMOOTH_COLOR_SCENERY
@@ -427,7 +429,7 @@ while( j<trackLength ) {
                 3, // height               
 
                 1, // type (box) - y
-                kindOfHalf, // min lightness
+                0, // min lightness
                 0, // hue
                 9, // saturation
                 x+1, // x1
@@ -546,21 +548,25 @@ f = (now?: number) => {
     let zPreviousi = zCurrent | 0;
 
     if( LEFT_RIGHT_CONTROL ) {
-        yRotCurrent += diff * ((keys[37]||0) - (keys[39]||0)) / 2e3;
+        if( HANDBRAKE_TURNS ) {
+            yRotCurrent += diff * ((keys[37]||0) - (keys[39]||0)) * ((keys[49]||0)+2) / 3e3;
+        } else {
+            yRotCurrent += diff * ((keys[37]||0) - (keys[39]||0)) / 1e3;
+        }
     }
     let dYRot = yRotCurrent - yRotTarget;
     let slowingFactor: number;
-    if( xCurrent > 0 && xCurrent < roadWidth && (!keys[40] || !SPEED_CONTROL) || !LEFT_RIGHT_CONTROL ) {
+    if( xCurrent > 0 && xCurrent < roadWidth && (!keys[49] || !SPEED_CONTROL) || !LEFT_RIGHT_CONTROL ) {
         slowingFactor = 5e3;
     } else {
         if( FAST_SLOW ) {
-            slowingFactor = 798;
+            slowingFactor = 698;
         } else {
             slowingFactor = 998;
         }
     }
     if( SPEED_CONTROL ) {
-        speed += diff * ((keys[38] || 0) / 8e4 - speed/slowingFactor);
+        speed += diff * ((keys[38] || 0) / 7e4 - speed/slowingFactor);
     } else {
         speed += diff*(1e-5 - speed/slowingFactor);
     }
