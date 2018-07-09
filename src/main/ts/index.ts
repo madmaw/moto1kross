@@ -17,7 +17,7 @@ const LEFT_RIGHT_CONTROL = true || ALL_ON;
 // are there other vehicles
 const OTHER_VEHICLES = true || ALL_ON;
 // do vehicles slow down on corners?
-const FAIR_VEHICLES = false && OTHER_VEHICLES || ALL_ON;
+const FAIR_VEHICLES = true && OTHER_VEHICLES || ALL_ON;
 // are there multiple vehicles or just one
 const MULTIPLE_VEHICLES = false && OTHER_VEHICLES || ALL_ON; // big
 // do non-emoji vehicles tyres flicker as they drive
@@ -32,6 +32,10 @@ const CENTER_LINES = true || ALL_ON;
 const LAP_MARKER = true || ALL_ON;
 // do we not have overlapping roads and terrain (not really neccessary anymore)
 const CLEAN_ROADS = false || ALL_ON;
+// do we attempt to centre the road in the scenery? (1 byte)
+const CENTERED_ROAD = true && !CLEAN_ROADS || ALL_ON;
+// is the car catchable? (1 byte)
+const CATCHABLE_CAR = true || ALL_ON;
 // do the roads change colour slightly
 const SHADED_ROADS = true || ALL_ON; 
 // should we draw scenery and cars as emojis
@@ -57,7 +61,7 @@ const SMOOTH_COLOR_TERRAIN = false || ALL_ON;
 // should scenery colour rotate perfectly back to 0
 const SMOOTH_COLOR_SCENERY = false || ALL_ON;
 // correct the ligtness to 100 in distance
-const CORRECT_LIGHTNESS = false || ALL_ON; // 2 bytes
+const CORRECT_LIGHTNESS = true || ALL_ON; // 2 bytes
 // do not allow really big FPS jumps
 const MAX_DIFF = false || ALL_ON;
 // correct frame positioning for x and z rotation
@@ -212,11 +216,11 @@ while( j<trackLength ) {
     //trackRotation = (Math.random() - .5)*Math.PI / 99;
     //rot = 0;
     randomValue = Math.random();
-    let xTrackRotation = (Math.sin(j/lookAhead) - 1)/98 + yTrackRotation;
+    let xTrackRotation = (Math.cos(j/lookAhead) - 1)/98 + yTrackRotation;
     //j++;
     if( j && !(j % 49) && (randomValue*98)&1 ) {
         //yTrackRotation = (randomValue - yTargetTrackRotation)*2/lookAhead;
-        yTrackRotation = (randomValue - yTargetTrackRotation)*2/lookAhead;
+        yTrackRotation = (randomValue - yTargetTrackRotation)/49;
         yTargetTrackRotation = randomValue;
     }
     if( Z_ROTATION ) {
@@ -248,7 +252,7 @@ while( j<trackLength ) {
                     ?j * .36
                     :j, // hue
                 36, // saturation
-                -98, // x
+                CENTERED_ROAD?-499:-98, // x
                 998, // width
     
             ];
@@ -284,7 +288,7 @@ while( j<trackLength ) {
                     ?j * .36
                     :j, // hue
                 49, // saturation
-                -98, // x
+                CENTERED_ROAD?-499:-98, // x
                 998, // width
     
             ];    
@@ -313,7 +317,7 @@ while( j<trackLength ) {
                 ?j * .36
                 :j, // hue
             36, // saturation
-            -98, // x
+            CENTERED_ROAD?-499:-98, // x
             998, // width
 
         ]; 
@@ -369,8 +373,8 @@ while( j<trackLength ) {
     if( SCENERY && RANDOM_SCENERY_PLACEMENT ) {
         zCurrent = randomValue;
     }
-    if( SCENERY && (zCurrent > .8 && RANDOM_SCENERY_PLACEMENT || !RANDOM_SCENERY_PLACEMENT && !(j%9) || !j && CHECKERED_FLAG) ) {
-        if( USE_EMOJIS ) {
+    if( SCENERY ) {
+        if( USE_EMOJIS && (zCurrent > .8 && RANDOM_SCENERY_PLACEMENT || !RANDOM_SCENERY_PLACEMENT && !(j%9) || !j && CHECKERED_FLAG) ) {
             if( RANDOM_SCENERY_PLACEMENT ) {
                 yScale = zCurrent;
                 zCurrent *= 9;
@@ -414,8 +418,12 @@ while( j<trackLength ) {
                 )    
     
             }
-        } else {
-            x = j%2?roadWidth+4:-6;
+        } else if ( !(j%9) ) {
+            if( RANDOM_SCENERY_PLACEMENT ) {
+                x = j%2?roadWidth+2+randomValue*9:-4-randomValue*9;
+            } else {
+                x = j%2?roadWidth+4:-6;
+            }
     
             scenery.splice(sceneryOffset, 0,
                 4, // type (box) - y
@@ -436,7 +444,7 @@ while( j<trackLength ) {
                 .1, // width     
                 1, // height               
 
-                9, // type box - y
+                8, // type box - y
                 kindOfHalf, 
                 -j, 
                 98, 
@@ -529,7 +537,7 @@ if( !STORE_X_ROTATION ) {
 //zCurrent = 0;
 
 // render and update
-f = (now?: number) => {
+f = (now: number) => {
     if( REQUEST_ANIMATION_FRAME ) {
         requestAnimationFrame(f);
     } else {
@@ -537,19 +545,19 @@ f = (now?: number) => {
         setTimeout(f, t);
         now = then + t;
     }
-    if( now && then ) {
+    // if( now && then ) {
         diff = now - then;
         if( MAX_DIFF && diff > 100 ) {
             diff = 100;
         }
-    } else {
-        diff = 0;
-    }
+    // } else {
+    //     diff = 0;
+    // }
     let zPreviousi = zCurrent | 0;
 
     if( LEFT_RIGHT_CONTROL ) {
         if( HANDBRAKE_TURNS ) {
-            yRotCurrent += diff * ((keys[37]||0) - (keys[39]||0)) * ((keys[49]||0)+2) / 3e3;
+            yRotCurrent += diff * ((keys[37]||0) - (keys[39]||0)) * ((keys[49]||0)+3) / 5e3;
         } else {
             yRotCurrent += diff * ((keys[37]||0) - (keys[39]||0)) / 1e3;
         }
@@ -566,7 +574,7 @@ f = (now?: number) => {
         }
     }
     if( SPEED_CONTROL ) {
-        speed += diff * ((keys[38] || 0) / 7e4 - speed/slowingFactor);
+        speed += diff * ((keys[38] || 0) / 5e4 - speed/slowingFactor);
     } else {
         speed += diff*(1e-5 - speed/slowingFactor);
     }
@@ -587,6 +595,7 @@ f = (now?: number) => {
             } else {
                 //xRotTarget -= frame[yRotationOffset];
                 xRotTarget += randomValue;
+                //xRotTarget += (zPreviousi%98)/trackLength;
             }
         }
         if( !LEFT_RIGHT_CONTROL ) {
@@ -624,7 +633,7 @@ f = (now?: number) => {
                         newFrame.splice(sceneryOffset, 0,
                             vehicleCharacter, 
                             kindOfHalf, 
-                            36 * j, 
+                            50 * j, 
                             98,
                             .1,
                             .1,
@@ -635,7 +644,7 @@ f = (now?: number) => {
                         newFrame.splice(sceneryOffset, 0,
                             vehicleCharacter, 
                             kindOfHalf, 
-                            36 * j, 
+                            50 * j, 
                             98,
                             .1,
                             .1,
@@ -656,7 +665,7 @@ f = (now?: number) => {
                         // roof
                         .9, // y
                         .5, // lightness
-                        36 * j, // hue
+                        50 * j, // hue
                         98, // saturation
                         vehicleX + .3, //x
                         1.2, // width
@@ -666,7 +675,7 @@ f = (now?: number) => {
                         // body
                         .6, // y
                         kindOfHalf, // lightness
-                        36 * j, // hue
+                        50 * j, // hue
                         98, // saturation
                         vehicleX + .2, //x
                         1.4, // width
@@ -697,7 +706,7 @@ f = (now?: number) => {
                 vehicles[j++] = vehicleZ;
             }    
         } else {
-            scenery = track[((vehicleZ | 0)+1)%trackLength];
+            scenery = track[((vehicleZ | 0))%trackLength];
             if( now ) {
                 scenery.splice(
                     sceneryOffset, 
@@ -708,11 +717,17 @@ f = (now?: number) => {
                         :35);
             }
             if( FAIR_VEHICLES ) {
-                vehicleZ += diff / (23 + vehicleZ - zCurrent) * (1 - Math.sin(scenery[yRotationOffset]*2));
+                //vehicleZ += diff / ((CATCHABLE_CAR?18:9) + vehicleZ - zCurrent) * (1 - Math.sin(scenery[yRotationOffset]*2));
+                vehicleZ += diff / 14 * (1 - Math.sin(scenery[yRotationOffset]*9));
             } else {
-                vehicleZ += diff / (23 + vehicleZ - zCurrent);
+                //vehicleZ += (diff + zCurrent - vehicleZ) / (CATCHABLE_CAR?14:9);
+                //vehicleZ = Math.max(zCurrent - 1, vehicleZ + diff / 14);
+                vehicleZ += diff / 16;
             }
-            let newFrameIndex = (vehicleZ | 0)+1;
+            if( vehicleZ < zCurrent ) {
+                vehicleZ = zCurrent;
+            }
+            let newFrameIndex = (vehicleZ | 0);
             scenery = track[newFrameIndex%trackLength];
             if( USE_EMOJIS ) {
                 if( SCALE_Z_PROGRESS ) {
@@ -740,7 +755,7 @@ f = (now?: number) => {
             } else {
                 scenery.splice(sceneryOffset, 0,
                     // windshield
-                    .8, // y
+                    .9, // y
                     1, // lightness
                     0, // hue
                     0, // saturation
@@ -749,41 +764,41 @@ f = (now?: number) => {
                     .3, // height
 
                     // roof
-                    .9, // y
+                    1, // y
                     .5, // lightness
                     0, // hue
                     98, // saturation
                     .3, //x
                     1.2, // width
-                    .4, // height
+                    .5, // height
                     
                     
                     // body
-                    .6, // y
+                    .7, // y
                     kindOfHalf, // lightness
                     0, // hue
                     98, // saturation
                     .2, //x
                     1.4, // width
-                    .5, // height
+                    .6, // height
 
                     // left tyre
-                    .1, // y
+                    1, // y
                     FLICKERING_TYRES?vehicleZ%kindOfHalf:.1, // lightness
                     0, // hue
                     0, // saturation
                     .3, //x
                     .3, // width
-                    .1, // height
+                    1, // height
 
                     // right tyre
-                    .1, // y
+                    1, // y
                     FLICKERING_TYRES?vehicleZ%kindOfHalf:.1, // lightness
                     0, // hue
                     0, // saturation
                     1.2, //x
                     .3, // width
-                    .1, // height
+                    1, // height
                     
                 );
 
@@ -798,6 +813,7 @@ f = (now?: number) => {
     let fr = zCurrent - (zCurrent | 0);
 
     let xRotation = STORE_X_ROTATION?(xRotTarget - xRotCurrent) * fr:fr*randomValue;
+    //let xRotation = (xRotTarget - xRotCurrent) * fr; 
     let yRotation;
     if( LEFT_RIGHT_CONTROL ) {
         yRotation = yRotCurrent - yRotTarget;
@@ -839,205 +855,204 @@ f = (now?: number) => {
         } 
 
         scenery = track[((zCurrent + i)| 0)%trackLength];
-        if( i > 1 ) {
-            // render the frame
-            j = sceneryOffset;
-            while( j < scenery.length ) {
-                let type = scenery[j++];
-                minLightness = scenery[j++];
-                let lightness = CORRECT_LIGHTNESS
-                    ?(i * (1 - minLightness) + minLightness * lookAhead) + 2
-                    :(i * (1 - minLightness) + minLightness * lookAhead);
-                c.fillStyle = `hsl(${scenery[j++]},${scenery[j++]}%,${lightness}%)`;
+        // render the frame
+        j = sceneryOffset;
+        while( j < scenery.length ) {
+            let type = scenery[j++];
+            minLightness = scenery[j++];
+            let lightness = CORRECT_LIGHTNESS
+                ?(i * (1 - minLightness) + minLightness * lookAhead) + 2
+                :(i * (1 - minLightness) + minLightness * lookAhead);
+            c.fillStyle = `hsl(${scenery[j++]},${scenery[j++]}%,${lightness}%)`;
 
-                let xScaling: number = (type && USE_EMOJIS && (SCENERY || OTHER_VEHICLES))
-                    ?scenery[j++]
-                    :1;
-                let yScaling: number = ( type && USE_EMOJIS && (SCENERY || OTHER_VEHICLES))
-                    ?scenery[j++]
-                    :1;
-                /*
+            let xScaling: number = (type && USE_EMOJIS && (SCENERY || OTHER_VEHICLES))
+                ?scenery[j++]
+                :1;
+            let yScaling: number = ( type && USE_EMOJIS && (SCENERY || OTHER_VEHICLES))
+                ?scenery[j++]
+                :1;
+            /*
+            if( type && USE_EMOJIS && (SCENERY || OTHER_VEHICLES) ) {
+                xScaling = scenery[j++];
+                yScaling = scenery[j++];
+            } else {
+                xScaling = 1;
+                yScaling = 1;    
+            }
+            */
+
+            if( SCALE_Z_PROGRESS) {
+
+                let scaledScale: number;
+                let scaledOffsetX: number;
+                let scaledOffsetY: number;
+                let scaledSin: number;
+                let scaledCos: number;
                 if( type && USE_EMOJIS && (SCENERY || OTHER_VEHICLES) ) {
-                    xScaling = scenery[j++];
-                    yScaling = scenery[j++];
+                    let zProgress: number = scenery[j++];
+                    scaledScale = zProgress * (previousScale - scale) + scale
+                    scaledOffsetX = zProgress * (previousOffsetX - offsetX) + offsetX;
+                    scaledOffsetY = zProgress * (previousOffsetY - offsetY) + offsetY;
+                    scaledSin = zProgress * (Math.sin(previousZRotation) - Math.sin(zRotation)) + Math.sin(zRotation);
+                    scaledCos = zProgress * (Math.cos(previousZRotation) - Math.cos(zRotation)) + Math.cos(zRotation);
                 } else {
-                    xScaling = 1;
-                    yScaling = 1;    
+                    scaledScale = scale;
+                    scaledOffsetX = offsetX;
+                    scaledOffsetY = offsetY;
+                    scaledSin = Math.sin(zRotation);
+                    scaledCos = Math.cos(zRotation);
                 }
-                */
 
-                if( SCALE_Z_PROGRESS) {
-    
-                    let scaledScale: number;
-                    let scaledOffsetX: number;
-                    let scaledOffsetY: number;
-                    let scaledSin: number;
-                    let scaledCos: number;
-                    if( type && USE_EMOJIS && (SCENERY || OTHER_VEHICLES) ) {
-                        let zProgress: number = scenery[j++];
-                        scaledScale = zProgress * (previousScale - scale) + scale
-                        scaledOffsetX = zProgress * (previousOffsetX - offsetX) + offsetX;
-                        scaledOffsetY = zProgress * (previousOffsetY - offsetY) + offsetY;
-                        scaledSin = zProgress * (Math.sin(previousZRotation) - Math.sin(zRotation)) + Math.sin(zRotation);
-                        scaledCos = zProgress * (Math.cos(previousZRotation) - Math.cos(zRotation)) + Math.cos(zRotation);
-                    } else {
-                        scaledScale = scale;
-                        scaledOffsetX = offsetX;
-                        scaledOffsetY = offsetY;
-                        scaledSin = Math.sin(zRotation);
-                        scaledCos = Math.cos(zRotation);
-                    }
-    
-                    if( EXPANDED_TRANSFORM ) {
-                        c.transform(
-                            scaledScale, 
-                            0, 
-                            0, 
-                            scaledScale, 
-                            canvasWidth/2, 
-                            canvasHeight/2
-                        );
-                        if( Z_ROTATION ) {
-                            c.transform(
-                                scaledCos, 
-                                scaledSin, 
-                                -scaledSin, 
-                                scaledCos, 
-                                0, 
-                                0
-                            );    
-                        }
-                        c.transform(
-                            xScaling, 
-                            0, 
-                            0, 
-                            yScaling, 
-                            scaledOffsetX, 
-                            scaledOffsetY
-                        );    
-                    } else {
-                        // incomplete and still compresses worse than just calling the transformations directly?!
-                        let a11 = scaledScale;
-                        // let a12 = 0;
-                        let a13 = canvasWidth/2;
-                        // let a21 = 0;
-                        let a22 = scaledScale;
-                        let a23 = canvasHeight/2;
-                        // let a31 = 0;
-                        // let a32 = 0;
-                        // let a33 = 1;
-    
-                        let d11 = xScaling;
-                        // let d12 = 0;
-                        let d13 = scaledOffsetX;
-                        // let d21 = 0;
-                        let d22 = yScaling;
-                        let d23 = scaledOffsetY;
-                        // let d31 = 0;
-                        // let d32 = 0;
-                        //let d33 = 1;
-    
-                        let e11 = a11*d11/*+ a12*d21 + a13*d31*/;
-                        let e12 = 0/*a11*d12 + a12*d22 + a13*d32*/;
-                        let e13 = a11*d13/*+ a12*d23*/+ a13/**d33*/;
-                        let e21 = 0/*a21*d11 + a22*d21 + a23*d31*/;
-                        let e22 = /*a21*d12 +*/a22*d22/*+ a23*d32*/;
-                        let e23 = /*a21*d13 +*/a22*d23 + a23/**d33*/;
-                        c.setTransform(e11, e21, e12, e22, e13, e23);
-                    }
-    
-                } else {
+                if( EXPANDED_TRANSFORM ) {
                     c.transform(
-                        scale, 
+                        scaledScale, 
                         0, 
                         0, 
-                        scale, 
+                        scaledScale, 
                         canvasWidth/2, 
                         canvasHeight/2
                     );
                     if( Z_ROTATION ) {
                         c.transform(
-                            Math.cos(zRotation), 
-                            Math.sin(zRotation), 
-                            -Math.sin(zRotation), 
-                            Math.cos(zRotation), 
-                            offsetX * Math.cos(zRotation) - offsetY * Math.sin(zRotation), 
-                            offsetY * Math.cos(zRotation) + offsetX * Math.sin(zRotation)
-                        );    
-                    } else {
-                        c.transform(
-                            xScaling, 
+                            scaledCos, 
+                            scaledSin, 
+                            -scaledSin, 
+                            scaledCos, 
                             0, 
-                            0, 
-                            yScaling, 
-                            offsetX, 
-                            offsetY
+                            0
                         );    
-                            
                     }
+                    c.transform(
+                        xScaling, 
+                        0, 
+                        0, 
+                        yScaling, 
+                        scaledOffsetX, 
+                        scaledOffsetY
+                    );    
+                } else {
+                    // incomplete and still compresses worse than just calling the transformations directly?!
+                    let a11 = scaledScale;
+                    // let a12 = 0;
+                    let a13 = canvasWidth/2;
+                    // let a21 = 0;
+                    let a22 = scaledScale;
+                    let a23 = canvasHeight/2;
+                    // let a31 = 0;
+                    // let a32 = 0;
+                    // let a33 = 1;
+
+                    let d11 = xScaling;
+                    // let d12 = 0;
+                    let d13 = scaledOffsetX;
+                    // let d21 = 0;
+                    let d22 = yScaling;
+                    let d23 = scaledOffsetY;
+                    // let d31 = 0;
+                    // let d32 = 0;
+                    //let d33 = 1;
+
+                    let e11 = a11*d11/*+ a12*d21 + a13*d31*/;
+                    let e12 = 0/*a11*d12 + a12*d22 + a13*d32*/;
+                    let e13 = a11*d13/*+ a12*d23*/+ a13/**d33*/;
+                    let e21 = 0/*a21*d11 + a22*d21 + a23*d31*/;
+                    let e22 = /*a21*d12 +*/a22*d22/*+ a23*d32*/;
+                    let e23 = /*a21*d13 +*/a22*d23 + a23/**d33*/;
+                    c.setTransform(e11, e21, e12, e22, e13, e23);
                 }
 
-                if( type && USE_EMOJIS && (SCENERY || OTHER_VEHICLES) ) {
-                    c.fillText(type, scenery[j++] / xScaling, 0);
+            } else {
+                c.transform(
+                    scale, 
+                    0, 
+                    0, 
+                    scale, 
+                    canvasWidth/2, 
+                    canvasHeight/2
+                );
+                if( Z_ROTATION ) {
+                    c.transform(
+                        Math.cos(zRotation), 
+                        Math.sin(zRotation), 
+                        -Math.sin(zRotation), 
+                        Math.cos(zRotation), 
+                        offsetX * Math.cos(zRotation) - offsetY * Math.sin(zRotation), 
+                        offsetY * Math.cos(zRotation) + offsetX * Math.sin(zRotation)
+                    );    
                 } else {
-                    
-                    let x = scenery[j++];
-                    let width = scenery[j++];
-                    if( SMOOTH_ROADS ) {
-                        c.beginPath();
-        
-                        c.lineTo(x + width, 0);
-                        c.lineTo(x, 0);
-        
-                        c.setTransform(
-                            previousScale, 
-                            0, 
-                            0, 
-                            previousScale, 
-                            canvasWidth/2, 
-                            canvasHeight/2
-                        );
-                        if( Z_ROTATION ) {
-                            c.transform(
-                                Math.cos(previousZRotation), 
-                                Math.sin(previousZRotation), 
-                                -Math.sin(previousZRotation), 
-                                Math.cos(previousZRotation), 
-                                0, 
-                                0
-                            )    
-                        }
+                    c.transform(
+                        xScaling, 
+                        0, 
+                        0, 
+                        yScaling, 
+                        offsetX, 
+                        offsetY
+                    );    
+                        
+                }
+            }
+
+            if( type && USE_EMOJIS && (SCENERY || OTHER_VEHICLES) ) {
+                c.fillText(type, scenery[j++] / xScaling, 0);
+            } else {
+                
+                let x = scenery[j++];
+                let width = scenery[j++];
+                if( SMOOTH_ROADS ) {
+                    c.beginPath();
+    
+                    c.lineTo(x + width, 0);
+                    c.lineTo(x, 0);
+    
+                    c.setTransform(
+                        previousScale, 
+                        0, 
+                        0, 
+                        previousScale, 
+                        canvasWidth/2, 
+                        canvasHeight/2
+                    );
+                    if( Z_ROTATION ) {
                         c.transform(
                             Math.cos(previousZRotation), 
+                            Math.sin(previousZRotation), 
+                            -Math.sin(previousZRotation), 
+                            Math.cos(previousZRotation), 
                             0, 
-                            0, 
-                            1, 
-                            previousOffsetX, 
-                            previousOffsetY
-                        )
-        
-                        c.lineTo(x, 0);
-                        c.lineTo(x, 1);
-                        c.lineTo(x + width, 1);
-                        c.lineTo(x + width, 0);
-        
-                        c.fill();        
+                            0
+                        )    
+                    }
+                    c.transform(
+                        Math.cos(previousZRotation), 
+                        0, 
+                        0, 
+                        1, 
+                        previousOffsetX, 
+                        previousOffsetY
+                    )
+    
+                    c.lineTo(x, 0);
+                    c.lineTo(x, 1);
+                    c.lineTo(x + width, 1);
+                    c.lineTo(x + width, 0);
+    
+                    c.fill();        
+                } else {
+                    if( USE_EMOJIS ) {
+                        c.fillRect(x, j/998, width, 9);
                     } else {
-                        if( USE_EMOJIS ) {
-                            c.fillRect(x, j/998, width, 9);
-                        } else {
-                            c.fillRect(x, -type, width, type?scenery[j++]:9);
-                        }
+                        c.fillRect(x, -type, width, type?scenery[j++]:9);
                     }
                 }
-                c.setTransform(1, 0, 0, 1, 0, 0);
             }
+            c.setTransform(1, 0, 0, 1, 0, 0);
         }
         if( X_ROTATION ) {
             if( STORE_X_ROTATION ) {
                 xRotation += scenery[xRotationOffset];
             } else {
                 xRotation -= randomValue;
+                //xRotation -= ((zCurrent + i)%98)/trackLength;
             }
         }
         yRotation += scenery[yRotationOffset];
@@ -1057,4 +1072,4 @@ f = (now?: number) => {
 
     then = now;
 }
-f();
+f(0);
