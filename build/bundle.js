@@ -74,7 +74,7 @@ var RESPONSIVE_HEIGHT = RESPONSIVE || ALL_ON ? 0 : 998;
 var SPEED_CONTROL = true || ALL_ON;
 var LEFT_RIGHT_CONTROL = true || ALL_ON;
 var OTHER_VEHICLES = true || ALL_ON;
-var FAIR_VEHICLES = false && OTHER_VEHICLES || ALL_ON;
+var FAIR_VEHICLES = true && OTHER_VEHICLES || ALL_ON;
 var MULTIPLE_VEHICLES = false && OTHER_VEHICLES || ALL_ON;
 var FLICKERING_TYRES = true || ALL_ON;
 var SCENERY = true || ALL_ON;
@@ -82,6 +82,8 @@ var RANDOM_SCENERY_PLACEMENT = false && SCENERY;
 var CENTER_LINES = true || ALL_ON;
 var LAP_MARKER = true || ALL_ON;
 var CLEAN_ROADS = false || ALL_ON;
+var CENTERED_ROAD = true && !CLEAN_ROADS || ALL_ON;
+var CATCHABLE_CAR = true || ALL_ON;
 var SHADED_ROADS = true || ALL_ON;
 var USE_EMOJIS = false;
 var SMOOTH_ROADS = (false || ALL_ON) && USE_EMOJIS;
@@ -94,7 +96,7 @@ var SCALE_Z_PROGRESS = false || ALL_ON;
 var CHECKERED_FLAG = false || ALL_ON;
 var SMOOTH_COLOR_TERRAIN = false || ALL_ON;
 var SMOOTH_COLOR_SCENERY = false || ALL_ON;
-var CORRECT_LIGHTNESS = false || ALL_ON;
+var CORRECT_LIGHTNESS = true || ALL_ON;
 var MAX_DIFF = false || ALL_ON;
 var ACCURATE_ANGLES = false || ALL_ON;
 var FAST_SLOW = false || ALL_ON;
@@ -184,9 +186,9 @@ while (j < trackLength) {
             ? (((j / 6) | 0) % 2) * .1
             : 0;
     randomValue = Math.random();
-    var xTrackRotation = (Math.sin(j / lookAhead) - 1) / 98 + yTrackRotation;
+    var xTrackRotation = (Math.cos(j / lookAhead) - 1) / 98 + yTrackRotation;
     if (j && !(j % 49) && (randomValue * 98) & 1) {
-        yTrackRotation = (randomValue - yTargetTrackRotation) * 2 / lookAhead;
+        yTrackRotation = (randomValue - yTargetTrackRotation) / 49;
         yTargetTrackRotation = randomValue;
     }
     if (Z_ROTATION) {
@@ -217,7 +219,7 @@ while (j < trackLength) {
                     ? j * .36
                     : j,
                 36,
-                -98,
+                CENTERED_ROAD ? -499 : -98,
                 998,
             ];
         }
@@ -249,7 +251,7 @@ while (j < trackLength) {
                     ? j * .36
                     : j,
                 49,
-                -98,
+                CENTERED_ROAD ? -499 : -98,
                 998,
             ];
         }
@@ -275,7 +277,7 @@ while (j < trackLength) {
                 ? j * .36
                 : j,
             36,
-            -98,
+            CENTERED_ROAD ? -499 : -98,
             998,
         ];
     }
@@ -298,8 +300,8 @@ while (j < trackLength) {
     if (SCENERY && RANDOM_SCENERY_PLACEMENT) {
         zCurrent = randomValue;
     }
-    if (SCENERY && (zCurrent > .8 && RANDOM_SCENERY_PLACEMENT || !RANDOM_SCENERY_PLACEMENT && !(j % 9) || !j && CHECKERED_FLAG)) {
-        if (USE_EMOJIS) {
+    if (SCENERY) {
+        if (USE_EMOJIS && (zCurrent > .8 && RANDOM_SCENERY_PLACEMENT || !RANDOM_SCENERY_PLACEMENT && !(j % 9) || !j && CHECKERED_FLAG)) {
             if (RANDOM_SCENERY_PLACEMENT) {
                 yScale = zCurrent;
                 zCurrent *= 9;
@@ -324,11 +326,16 @@ while (j < trackLength) {
                     : j) + 98, (j || !CHECKERED_FLAG) ? 98 : 0, xScale, yScale, x);
             }
         }
-        else {
-            x = j % 2 ? roadWidth + 4 : -6;
+        else if (!(j % 9)) {
+            if (RANDOM_SCENERY_PLACEMENT) {
+                x = j % 2 ? roadWidth + 2 + randomValue * 9 : -4 - randomValue * 9;
+            }
+            else {
+                x = j % 2 ? roadWidth + 4 : -6;
+            }
             scenery.splice(sceneryOffset, 0, 4, kindOfHalf, (SMOOTH_COLOR_SCENERY
                 ? j * .36
-                : j) + 98, 98, x, 2, 3, 1, 0, 0, 9, x + 1, .1, 1, 9, kindOfHalf, -j, 98, randomValue * roadWidth, 1, 1);
+                : j) + 98, 98, x, 2, 3, 1, 0, 0, 9, x + 1, .1, 1, 8, kindOfHalf, -j, 98, randomValue * roadWidth, 1, 1);
         }
     }
 }
@@ -419,19 +426,14 @@ f = function (now) {
         setTimeout(f, t);
         now = then + t;
     }
-    if (now && then) {
-        diff = now - then;
-        if (MAX_DIFF && diff > 100) {
-            diff = 100;
-        }
-    }
-    else {
-        diff = 0;
+    diff = now - then;
+    if (MAX_DIFF && diff > 100) {
+        diff = 100;
     }
     var zPreviousi = zCurrent | 0;
     if (LEFT_RIGHT_CONTROL) {
         if (HANDBRAKE_TURNS) {
-            yRotCurrent += diff * ((keys[37] || 0) - (keys[39] || 0)) * ((keys[49] || 0) + 2) / 3e3;
+            yRotCurrent += diff * ((keys[37] || 0) - (keys[39] || 0)) * ((keys[49] || 0) + 3) / 5e3;
         }
         else {
             yRotCurrent += diff * ((keys[37] || 0) - (keys[39] || 0)) / 1e3;
@@ -451,7 +453,7 @@ f = function (now) {
         }
     }
     if (SPEED_CONTROL) {
-        speed += diff * ((keys[38] || 0) / 7e4 - speed / slowingFactor);
+        speed += diff * ((keys[38] || 0) / 5e4 - speed / slowingFactor);
     }
     else {
         speed += diff * (1e-5 - speed / slowingFactor);
@@ -499,20 +501,20 @@ f = function (now) {
                 var newFrame = track[newFrameIndex % trackLength];
                 if (USE_EMOJIS) {
                     if (SCALE_Z_PROGRESS) {
-                        newFrame.splice(sceneryOffset, 0, vehicleCharacter, kindOfHalf, 36 * j, 98, .1, .1, newFrameIndex - vehicleZ_1, vehicleX_1);
+                        newFrame.splice(sceneryOffset, 0, vehicleCharacter, kindOfHalf, 50 * j, 98, .1, .1, newFrameIndex - vehicleZ_1, vehicleX_1);
                     }
                     else {
-                        newFrame.splice(sceneryOffset, 0, vehicleCharacter, kindOfHalf, 36 * j, 98, .1, .1, vehicleX_1);
+                        newFrame.splice(sceneryOffset, 0, vehicleCharacter, kindOfHalf, 50 * j, 98, .1, .1, vehicleX_1);
                     }
                 }
                 else {
-                    newFrame.splice(sceneryOffset, 0, .8, 1, 0, 0, vehicleX_1 + .4, 1, .3, .9, .5, 36 * j, 98, vehicleX_1 + .3, 1.2, .4, .6, kindOfHalf, 36 * j, 98, vehicleX_1 + .2, 1.4, .5, .1, FLICKERING_TYRES ? vehicleZ_1 % kindOfHalf : .1, 0, 0, vehicleX_1 + .3, .3, .1, .1, FLICKERING_TYRES ? vehicleZ_1 % kindOfHalf : .1, 0, 0, vehicleX_1 + 1.2, .3, .1);
+                    newFrame.splice(sceneryOffset, 0, .8, 1, 0, 0, vehicleX_1 + .4, 1, .3, .9, .5, 50 * j, 98, vehicleX_1 + .3, 1.2, .4, .6, kindOfHalf, 50 * j, 98, vehicleX_1 + .2, 1.4, .5, .1, FLICKERING_TYRES ? vehicleZ_1 % kindOfHalf : .1, 0, 0, vehicleX_1 + .3, .3, .1, .1, FLICKERING_TYRES ? vehicleZ_1 % kindOfHalf : .1, 0, 0, vehicleX_1 + 1.2, .3, .1);
                 }
                 vehicles[j++] = vehicleZ_1;
             }
         }
         else {
-            scenery = track[((vehicleZ | 0) + 1) % trackLength];
+            scenery = track[((vehicleZ | 0)) % trackLength];
             if (now) {
                 scenery.splice(sceneryOffset, USE_EMOJIS
                     ? SCALE_Z_PROGRESS
@@ -521,12 +523,15 @@ f = function (now) {
                     : 35);
             }
             if (FAIR_VEHICLES) {
-                vehicleZ += diff / (23 + vehicleZ - zCurrent) * (1 - Math.sin(scenery[yRotationOffset] * 2));
+                vehicleZ += diff / 14 * (1 - Math.sin(scenery[yRotationOffset] * 9));
             }
             else {
-                vehicleZ += diff / (23 + vehicleZ - zCurrent);
+                vehicleZ += diff / 16;
             }
-            var newFrameIndex = (vehicleZ | 0) + 1;
+            if (vehicleZ < zCurrent) {
+                vehicleZ = zCurrent;
+            }
+            var newFrameIndex = (vehicleZ | 0);
             scenery = track[newFrameIndex % trackLength];
             if (USE_EMOJIS) {
                 if (SCALE_Z_PROGRESS) {
@@ -537,7 +542,7 @@ f = function (now) {
                 }
             }
             else {
-                scenery.splice(sceneryOffset, 0, .8, 1, 0, 0, .4, 1, .3, .9, .5, 0, 98, .3, 1.2, .4, .6, kindOfHalf, 0, 98, .2, 1.4, .5, .1, FLICKERING_TYRES ? vehicleZ % kindOfHalf : .1, 0, 0, .3, .3, .1, .1, FLICKERING_TYRES ? vehicleZ % kindOfHalf : .1, 0, 0, 1.2, .3, .1);
+                scenery.splice(sceneryOffset, 0, .9, 1, 0, 0, .4, 1, .3, 1, .5, 0, 98, .3, 1.2, .5, .7, kindOfHalf, 0, 98, .2, 1.4, .6, 1, FLICKERING_TYRES ? vehicleZ % kindOfHalf : .1, 0, 0, .3, .3, 1, 1, FLICKERING_TYRES ? vehicleZ % kindOfHalf : .1, 0, 0, 1.2, .3, 1);
             }
         }
     }
@@ -583,108 +588,106 @@ f = function (now) {
             }
         }
         scenery = track[((zCurrent + i) | 0) % trackLength];
-        if (i > 1) {
-            j = sceneryOffset;
-            while (j < scenery.length) {
-                var type = scenery[j++];
-                minLightness = scenery[j++];
-                var lightness = CORRECT_LIGHTNESS
-                    ? (i * (1 - minLightness) + minLightness * lookAhead) + 2
-                    : (i * (1 - minLightness) + minLightness * lookAhead);
-                c.fillStyle = "hsl(" + scenery[j++] + "," + scenery[j++] + "%," + lightness + "%)";
-                var xScaling = (type && USE_EMOJIS && (SCENERY || OTHER_VEHICLES))
-                    ? scenery[j++]
-                    : 1;
-                var yScaling = (type && USE_EMOJIS && (SCENERY || OTHER_VEHICLES))
-                    ? scenery[j++]
-                    : 1;
-                if (SCALE_Z_PROGRESS) {
-                    var scaledScale = void 0;
-                    var scaledOffsetX = void 0;
-                    var scaledOffsetY = void 0;
-                    var scaledSin = void 0;
-                    var scaledCos = void 0;
-                    if (type && USE_EMOJIS && (SCENERY || OTHER_VEHICLES)) {
-                        var zProgress = scenery[j++];
-                        scaledScale = zProgress * (previousScale - scale) + scale;
-                        scaledOffsetX = zProgress * (previousOffsetX - offsetX) + offsetX;
-                        scaledOffsetY = zProgress * (previousOffsetY - offsetY) + offsetY;
-                        scaledSin = zProgress * (Math.sin(previousZRotation) - Math.sin(zRotation)) + Math.sin(zRotation);
-                        scaledCos = zProgress * (Math.cos(previousZRotation) - Math.cos(zRotation)) + Math.cos(zRotation);
-                    }
-                    else {
-                        scaledScale = scale;
-                        scaledOffsetX = offsetX;
-                        scaledOffsetY = offsetY;
-                        scaledSin = Math.sin(zRotation);
-                        scaledCos = Math.cos(zRotation);
-                    }
-                    if (EXPANDED_TRANSFORM) {
-                        c.transform(scaledScale, 0, 0, scaledScale, canvasWidth / 2, canvasHeight / 2);
-                        if (Z_ROTATION) {
-                            c.transform(scaledCos, scaledSin, -scaledSin, scaledCos, 0, 0);
-                        }
-                        c.transform(xScaling, 0, 0, yScaling, scaledOffsetX, scaledOffsetY);
-                    }
-                    else {
-                        var a11 = scaledScale;
-                        var a13 = canvasWidth / 2;
-                        var a22 = scaledScale;
-                        var a23 = canvasHeight / 2;
-                        var d11 = xScaling;
-                        var d13 = scaledOffsetX;
-                        var d22 = yScaling;
-                        var d23 = scaledOffsetY;
-                        var e11 = a11 * d11;
-                        var e12 = 0;
-                        var e13 = a11 * d13 + a13;
-                        var e21 = 0;
-                        var e22 = a22 * d22;
-                        var e23 = a22 * d23 + a23;
-                        c.setTransform(e11, e21, e12, e22, e13, e23);
-                    }
-                }
-                else {
-                    c.transform(scale, 0, 0, scale, canvasWidth / 2, canvasHeight / 2);
-                    if (Z_ROTATION) {
-                        c.transform(Math.cos(zRotation), Math.sin(zRotation), -Math.sin(zRotation), Math.cos(zRotation), offsetX * Math.cos(zRotation) - offsetY * Math.sin(zRotation), offsetY * Math.cos(zRotation) + offsetX * Math.sin(zRotation));
-                    }
-                    else {
-                        c.transform(xScaling, 0, 0, yScaling, offsetX, offsetY);
-                    }
-                }
+        j = sceneryOffset;
+        while (j < scenery.length) {
+            var type = scenery[j++];
+            minLightness = scenery[j++];
+            var lightness = CORRECT_LIGHTNESS
+                ? (i * (1 - minLightness) + minLightness * lookAhead) + 2
+                : (i * (1 - minLightness) + minLightness * lookAhead);
+            c.fillStyle = "hsl(" + scenery[j++] + "," + scenery[j++] + "%," + lightness + "%)";
+            var xScaling = (type && USE_EMOJIS && (SCENERY || OTHER_VEHICLES))
+                ? scenery[j++]
+                : 1;
+            var yScaling = (type && USE_EMOJIS && (SCENERY || OTHER_VEHICLES))
+                ? scenery[j++]
+                : 1;
+            if (SCALE_Z_PROGRESS) {
+                var scaledScale = void 0;
+                var scaledOffsetX = void 0;
+                var scaledOffsetY = void 0;
+                var scaledSin = void 0;
+                var scaledCos = void 0;
                 if (type && USE_EMOJIS && (SCENERY || OTHER_VEHICLES)) {
-                    c.fillText(type, scenery[j++] / xScaling, 0);
+                    var zProgress = scenery[j++];
+                    scaledScale = zProgress * (previousScale - scale) + scale;
+                    scaledOffsetX = zProgress * (previousOffsetX - offsetX) + offsetX;
+                    scaledOffsetY = zProgress * (previousOffsetY - offsetY) + offsetY;
+                    scaledSin = zProgress * (Math.sin(previousZRotation) - Math.sin(zRotation)) + Math.sin(zRotation);
+                    scaledCos = zProgress * (Math.cos(previousZRotation) - Math.cos(zRotation)) + Math.cos(zRotation);
                 }
                 else {
-                    var x_1 = scenery[j++];
-                    var width = scenery[j++];
-                    if (SMOOTH_ROADS) {
-                        c.beginPath();
-                        c.lineTo(x_1 + width, 0);
-                        c.lineTo(x_1, 0);
-                        c.setTransform(previousScale, 0, 0, previousScale, canvasWidth / 2, canvasHeight / 2);
-                        if (Z_ROTATION) {
-                            c.transform(Math.cos(previousZRotation), Math.sin(previousZRotation), -Math.sin(previousZRotation), Math.cos(previousZRotation), 0, 0);
-                        }
-                        c.transform(Math.cos(previousZRotation), 0, 0, 1, previousOffsetX, previousOffsetY);
-                        c.lineTo(x_1, 0);
-                        c.lineTo(x_1, 1);
-                        c.lineTo(x_1 + width, 1);
-                        c.lineTo(x_1 + width, 0);
-                        c.fill();
+                    scaledScale = scale;
+                    scaledOffsetX = offsetX;
+                    scaledOffsetY = offsetY;
+                    scaledSin = Math.sin(zRotation);
+                    scaledCos = Math.cos(zRotation);
+                }
+                if (EXPANDED_TRANSFORM) {
+                    c.transform(scaledScale, 0, 0, scaledScale, canvasWidth / 2, canvasHeight / 2);
+                    if (Z_ROTATION) {
+                        c.transform(scaledCos, scaledSin, -scaledSin, scaledCos, 0, 0);
+                    }
+                    c.transform(xScaling, 0, 0, yScaling, scaledOffsetX, scaledOffsetY);
+                }
+                else {
+                    var a11 = scaledScale;
+                    var a13 = canvasWidth / 2;
+                    var a22 = scaledScale;
+                    var a23 = canvasHeight / 2;
+                    var d11 = xScaling;
+                    var d13 = scaledOffsetX;
+                    var d22 = yScaling;
+                    var d23 = scaledOffsetY;
+                    var e11 = a11 * d11;
+                    var e12 = 0;
+                    var e13 = a11 * d13 + a13;
+                    var e21 = 0;
+                    var e22 = a22 * d22;
+                    var e23 = a22 * d23 + a23;
+                    c.setTransform(e11, e21, e12, e22, e13, e23);
+                }
+            }
+            else {
+                c.transform(scale, 0, 0, scale, canvasWidth / 2, canvasHeight / 2);
+                if (Z_ROTATION) {
+                    c.transform(Math.cos(zRotation), Math.sin(zRotation), -Math.sin(zRotation), Math.cos(zRotation), offsetX * Math.cos(zRotation) - offsetY * Math.sin(zRotation), offsetY * Math.cos(zRotation) + offsetX * Math.sin(zRotation));
+                }
+                else {
+                    c.transform(xScaling, 0, 0, yScaling, offsetX, offsetY);
+                }
+            }
+            if (type && USE_EMOJIS && (SCENERY || OTHER_VEHICLES)) {
+                c.fillText(type, scenery[j++] / xScaling, 0);
+            }
+            else {
+                var x_1 = scenery[j++];
+                var width = scenery[j++];
+                if (SMOOTH_ROADS) {
+                    c.beginPath();
+                    c.lineTo(x_1 + width, 0);
+                    c.lineTo(x_1, 0);
+                    c.setTransform(previousScale, 0, 0, previousScale, canvasWidth / 2, canvasHeight / 2);
+                    if (Z_ROTATION) {
+                        c.transform(Math.cos(previousZRotation), Math.sin(previousZRotation), -Math.sin(previousZRotation), Math.cos(previousZRotation), 0, 0);
+                    }
+                    c.transform(Math.cos(previousZRotation), 0, 0, 1, previousOffsetX, previousOffsetY);
+                    c.lineTo(x_1, 0);
+                    c.lineTo(x_1, 1);
+                    c.lineTo(x_1 + width, 1);
+                    c.lineTo(x_1 + width, 0);
+                    c.fill();
+                }
+                else {
+                    if (USE_EMOJIS) {
+                        c.fillRect(x_1, j / 998, width, 9);
                     }
                     else {
-                        if (USE_EMOJIS) {
-                            c.fillRect(x_1, j / 998, width, 9);
-                        }
-                        else {
-                            c.fillRect(x_1, -type, width, type ? scenery[j++] : 9);
-                        }
+                        c.fillRect(x_1, -type, width, type ? scenery[j++] : 9);
                     }
                 }
-                c.setTransform(1, 0, 0, 1, 0, 0);
             }
+            c.setTransform(1, 0, 0, 1, 0, 0);
         }
         if (X_ROTATION) {
             if (STORE_X_ROTATION) {
@@ -709,7 +712,7 @@ f = function (now) {
     }
     then = now;
 };
-f();
+f(0);
 
 
 /***/ })
