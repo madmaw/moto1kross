@@ -62,6 +62,9 @@
                     from: /(\n|\r)/g,
                     to: ""
                 }/*, {
+                    from: /=(\w+\|0);/g,
+                    to: "=($1);"
+                }*//*, {
                     // note, this is a symptom that TS is initalizing your local vars (which you don't want)
                     from: /void 0/g,
                     to: "0"

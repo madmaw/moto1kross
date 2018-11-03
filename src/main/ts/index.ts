@@ -4,7 +4,7 @@
 // turn on everything
 const ALL_ON = false;
 
-const RESPONSIVE = true;
+const RESPONSIVE = false;
 // use a fixed with for the canvas
 const RESPONSIVE_WIDTH = RESPONSIVE || ALL_ON?0:998;
 // use a fixed height for the canvas
@@ -17,11 +17,11 @@ const LEFT_RIGHT_CONTROL = true || ALL_ON;
 // are there other vehicles
 const OTHER_VEHICLES = true || ALL_ON;
 // do vehicles slow down on corners?
-const FAIR_VEHICLES = true && OTHER_VEHICLES || ALL_ON;
+const FAIR_VEHICLES = false && OTHER_VEHICLES || ALL_ON; // 8 bytes
 // are there multiple vehicles or just one
 const MULTIPLE_VEHICLES = false && OTHER_VEHICLES || ALL_ON; // big
 // do non-emoji vehicles tyres flicker as they drive
-const FLICKERING_TYRES = true || ALL_ON;
+const FLICKERING_TYRES = false || ALL_ON;
 // is there scenery
 const SCENERY = true || ALL_ON;
 // is the scenery placed randomly or evenly
@@ -29,13 +29,13 @@ const RANDOM_SCENERY_PLACEMENT = false && SCENERY;
 // are there center lines
 const CENTER_LINES = true || ALL_ON;
 // is there a lap marker 
-const LAP_MARKER = true || ALL_ON;
+const LAP_MARKER = false || ALL_ON;
 // do we not have overlapping roads and terrain (not really neccessary anymore)
 const CLEAN_ROADS = false || ALL_ON;
-// do we attempt to centre the road in the scenery? (1 byte)
+// do we attempt to centre the road in the scenery? (1 byte?)
 const CENTERED_ROAD = true && !CLEAN_ROADS || ALL_ON;
 // is the car catchable? (1 byte)
-const CATCHABLE_CAR = true || ALL_ON;
+const CATCHABLE_CAR = false || ALL_ON;
 // do the roads change colour slightly
 const SHADED_ROADS = true || ALL_ON; 
 // should we draw scenery and cars as emojis
@@ -47,7 +47,7 @@ const X_ROTATION = true || ALL_ON; // big
 // can be roate the terrain on the z axis
 const Z_ROTATION = true || ALL_ON; // big
 // is the x rotation interesting, or just constant
-const STORE_X_ROTATION = false && X_ROTATION || ALL_ON;
+const STORE_X_ROTATION = true && X_ROTATION || ALL_ON;
 // can we have left turns at the start of the game?
 const CAN_GO_LEFT_AT_START = false || ALL_ON; // 3 bytes?
 // use requestAnimationFrame or setTimeout
@@ -61,7 +61,7 @@ const SMOOTH_COLOR_TERRAIN = false || ALL_ON;
 // should scenery colour rotate perfectly back to 0
 const SMOOTH_COLOR_SCENERY = false || ALL_ON;
 // correct the ligtness to 100 in distance
-const CORRECT_LIGHTNESS = true || ALL_ON; // 2 bytes
+const CORRECT_LIGHTNESS = false || ALL_ON; // 2 bytes
 // do not allow really big FPS jumps
 const MAX_DIFF = false || ALL_ON;
 // correct frame positioning for x and z rotation
@@ -211,7 +211,7 @@ while( j<trackLength ) {
     let minLightness = !j && LAP_MARKER
         ?1
         :(SHADED_ROADS)
-            ?(((j / 6) | 0) % 2) * .1
+            ?(j/6 | 0) % 2/9
             :0;
     //trackRotation = (Math.random() - .5)*Math.PI / 99;
     //rot = 0;
@@ -275,7 +275,7 @@ while( j<trackLength ) {
                 !j && LAP_MARKER
                     ?1
                     :(SHADED_ROADS)
-                        ?(((j / 6) | 0) % 2) * .1
+                        ?(((j / 6) | 0) % 2)/9
                         :0, // min lightness
                 0, // hue
                 0, // saturation
@@ -458,27 +458,32 @@ while( j<trackLength ) {
 }
 if( LEFT_RIGHT_CONTROL || SPEED_CONTROL ) {
     onkeydown = (e: KeyboardEvent) => {
-        keys[e.keyCode] = 1;
+        keys[e.key] = 1;
     }
     onkeyup = (e: KeyboardEvent) => {
-        keys[e.keyCode] = 0;
-    }    
+        keys[e.key] = 0;
+    } 
+   /*
+    onkeydown = onkeyup = (e: KeyboardEvent) => {
+        keys[e.keyCode] = 112 - e.type.charCodeAt(4);
+    }
+    */   
 
     if( MOBILE_CONTROLS ) {
         window.ontouchstart = window.ontouchend = (e: TouchEvent) => {
             e.preventDefault();
             switch(e.touches.length) {
                 case 0:
-                    keys[38] = 0;
-                    keys[40] = 0;
+                    keys['w'] = 0;
+                    keys['l'] = 0;
                     break;
                 case 1:
-                    keys[38] = 1;
-                    keys[40] = 0;
+                    keys['w'] = 1;
+                    keys['l'] = 0;
                     break;
                 default:
-                    keys[38] = 0;
-                    keys[40] = 1;
+                    keys['w'] = 0;
+                    keys['l'] = 1;
             }
             return false;
         }
@@ -486,7 +491,7 @@ if( LEFT_RIGHT_CONTROL || SPEED_CONTROL ) {
         let zero: number = null;
         addEventListener('deviceorientation', (e: DeviceOrientationEvent) => {
             let alpha: number;
-            let screenOrientation = screen.msOrientation || (screen['orientation'] || screen['mozOrientation'] || {}).type
+            let screenOrientation = screen['msOrientation'] || (screen['orientation'] || screen['mozOrientation'] || {}).type
             let windowOrientation = window.orientation;
             if( screenOrientation == 'landscape-primary' || windowOrientation == -90) {
                 alpha = e.beta;
@@ -515,11 +520,11 @@ if( LEFT_RIGHT_CONTROL || SPEED_CONTROL ) {
                     alpha += 360;
                 }
                 if( alpha < zero + 180 ) {
-                    keys[37] = Math.min((alpha - zero)/15, 2);
-                    keys[39] = 0;
+                    keys['w'] = Math.min((alpha - zero)/15, 2);
+                    keys['d'] = 0;
                 } else {
-                    keys[37] = 0;
-                    keys[39] = Math.min((360 - (alpha - zero))/15, 2);
+                    keys['w'] = 0;
+                    keys['d'] = Math.min((360 - (alpha - zero))/15, 2);
                 }
             }
         });
@@ -547,8 +552,8 @@ f = (now: number) => {
     }
     // if( now && then ) {
         diff = now - then;
-        if( MAX_DIFF && diff > 100 ) {
-            diff = 100;
+        if( MAX_DIFF && diff > 99 ) {
+            diff = 99;
         }
     // } else {
     //     diff = 0;
@@ -557,24 +562,24 @@ f = (now: number) => {
 
     if( LEFT_RIGHT_CONTROL ) {
         if( HANDBRAKE_TURNS ) {
-            yRotCurrent += diff * ((keys[37]||0) - (keys[39]||0)) * ((keys[49]||0)+3) / 5e3;
+            yRotCurrent += diff * ((keys['a']|0) - (keys['d']|0)) * (keys['l']|2) / 4e3;
         } else {
-            yRotCurrent += diff * ((keys[37]||0) - (keys[39]||0)) / 1e3;
+            yRotCurrent += diff * ((keys['a']|0) - (keys['d']|0)) / 1e3;
         }
     }
     let dYRot = yRotCurrent - yRotTarget;
     let slowingFactor: number;
-    if( xCurrent > 0 && xCurrent < roadWidth && (!keys[49] || !SPEED_CONTROL) || !LEFT_RIGHT_CONTROL ) {
+    if( xCurrent > 0 && xCurrent < roadWidth && (!keys['l'] || !SPEED_CONTROL) || !LEFT_RIGHT_CONTROL ) {
         slowingFactor = 5e3;
     } else {
         if( FAST_SLOW ) {
-            slowingFactor = 698;
+            slowingFactor = 499;
         } else {
             slowingFactor = 998;
         }
     }
     if( SPEED_CONTROL ) {
-        speed += diff * ((keys[38] || 0) / 5e4 - speed/slowingFactor);
+        speed += diff * ((keys['w']|0) / 5e4 - speed/slowingFactor);
     } else {
         speed += diff*(1e-5 - speed/slowingFactor);
     }
@@ -615,7 +620,7 @@ f = (now: number) => {
             while( j < vehicleCount*2 ) {
                 let vehicleX = vehicles[j++];
                 let vehicleZ = vehicles[j];
-                let oldFrame = track[((vehicleZ | 0)+1)%trackLength];
+                let oldFrame = track[(vehicleZ+1 | 0)%trackLength];
                 if( now ) {
                     oldFrame.splice(
                         sceneryOffset, 
@@ -626,7 +631,7 @@ f = (now: number) => {
                             :35);
                 }
                 vehicleZ += diff / (83 - j * 9 + vehicleZ - zCurrent);
-                let newFrameIndex = (vehicleZ | 0)+1;
+                let newFrameIndex = vehicleZ+1 | 0;
                 let newFrame = track[newFrameIndex%trackLength];
                 if( USE_EMOJIS ) {
                     if( SCALE_Z_PROGRESS ) {
@@ -706,7 +711,7 @@ f = (now: number) => {
                 vehicles[j++] = vehicleZ;
             }    
         } else {
-            scenery = track[((vehicleZ | 0))%trackLength];
+            scenery = track[(vehicleZ | 0)%trackLength];
             if( now ) {
                 scenery.splice(
                     sceneryOffset, 
@@ -717,18 +722,17 @@ f = (now: number) => {
                         :35);
             }
             if( FAIR_VEHICLES ) {
-                //vehicleZ += diff / ((CATCHABLE_CAR?18:9) + vehicleZ - zCurrent) * (1 - Math.sin(scenery[yRotationOffset]*2));
-                vehicleZ += diff / 14 * (1 - Math.sin(scenery[yRotationOffset]*9));
+                vehicleZ += diff / ((CATCHABLE_CAR?16:9) + vehicleZ - zCurrent) * (1 - Math.sin(scenery[yRotationOffset]*9));
+                //vehicleZ += diff / 14 * (1 - Math.sin(scenery[yRotationOffset]*9));
             } else {
-                //vehicleZ += (diff + zCurrent - vehicleZ) / (CATCHABLE_CAR?14:9);
+                vehicleZ += diff / ((CATCHABLE_CAR?17:9) + vehicleZ - zCurrent);
                 //vehicleZ = Math.max(zCurrent - 1, vehicleZ + diff / 14);
-                vehicleZ += diff / 16;
+                //vehicleZ += diff / 16;
             }
-            if( vehicleZ < zCurrent ) {
-                vehicleZ = zCurrent;
-            }
-            let newFrameIndex = (vehicleZ | 0);
-            scenery = track[newFrameIndex%trackLength];
+            // if( vehicleZ < zCurrent ) {
+            //     vehicleZ = zCurrent;
+            // }
+            scenery = track[(vehicleZ | 0)%trackLength];
             if( USE_EMOJIS ) {
                 if( SCALE_Z_PROGRESS ) {
                     scenery.splice(sceneryOffset, 0,
@@ -738,7 +742,7 @@ f = (now: number) => {
                         98,
                         .1,
                         .1,
-                        newFrameIndex - vehicleZ,
+                        (vehicleZ | 0) - vehicleZ,
                         vehicleX,                            
                     );        
                 } else {
@@ -854,7 +858,7 @@ f = (now: number) => {
             }
         } 
 
-        scenery = track[((zCurrent + i)| 0)%trackLength];
+        scenery = track[(zCurrent + i | 0)%trackLength];
         // render the frame
         j = sceneryOffset;
         while( j < scenery.length ) {
@@ -962,7 +966,7 @@ f = (now: number) => {
                 }
 
             } else {
-                c.transform(
+                c.setTransform(
                     scale, 
                     0, 
                     0, 
