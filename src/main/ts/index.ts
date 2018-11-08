@@ -21,7 +21,7 @@ const FAIR_VEHICLES = false && OTHER_VEHICLES || ALL_ON; // 8 bytes
 // are there multiple vehicles or just one
 const MULTIPLE_VEHICLES = false && OTHER_VEHICLES || ALL_ON; // big
 // do non-emoji vehicles tyres flicker as they drive
-const FLICKERING_TYRES = false || ALL_ON;
+const FLICKERING_TYRES = true || ALL_ON;
 // is there scenery
 const SCENERY = true || ALL_ON;
 // is the scenery placed randomly or evenly
@@ -29,7 +29,7 @@ const RANDOM_SCENERY_PLACEMENT = false && SCENERY;
 // are there center lines
 const CENTER_LINES = true || ALL_ON;
 // is there a lap marker 
-const LAP_MARKER = false || ALL_ON;
+const LAP_MARKER = true || ALL_ON;
 // do we not have overlapping roads and terrain (not really neccessary anymore)
 const CLEAN_ROADS = false || ALL_ON;
 // do we attempt to centre the road in the scenery? (1 byte?)
@@ -50,20 +50,20 @@ const Z_ROTATION = true || ALL_ON; // big
 const STORE_X_ROTATION = true && X_ROTATION || ALL_ON;
 // can we have left turns at the start of the game?
 const CAN_GO_LEFT_AT_START = false || ALL_ON; // 3 bytes?
-// use requestAnimationFrame or setTimeout
-const REQUEST_ANIMATION_FRAME = true || ALL_ON; // -1 byte?
+// use requestAnimationFrame or setInterval
+const SET_TIME_OUT_INTERVAL = false || ALL_ON?0:35; // setInterval = 5-6 bytes 
 // should vehicles jump between frames
 const SCALE_Z_PROGRESS = false || ALL_ON; // big
 // display a checkered flag when lapping
 const CHECKERED_FLAG = false || ALL_ON;
 // should terrain color rotate perfectly back to 0 
-const SMOOTH_COLOR_TERRAIN = false || ALL_ON;
+const SMOOTH_COLOR_TERRAIN = true || ALL_ON?.35:0;
 // should scenery colour rotate perfectly back to 0
 const SMOOTH_COLOR_SCENERY = false || ALL_ON;
 // correct the ligtness to 100 in distance
 const CORRECT_LIGHTNESS = false || ALL_ON; // 2 bytes
 // do not allow really big FPS jumps
-const MAX_DIFF = false || ALL_ON;
+const MAX_DIFF = false || ALL_ON?98:0;
 // correct frame positioning for x and z rotation
 const ACCURATE_ANGLES = false || ALL_ON;
 // slow down quickly, or at the same rate as going offroad
@@ -185,7 +185,7 @@ c.globalCompositeOperation = 'destination-over'
 let canvasWidth = RESPONSIVE_WIDTH && RESPONSIVE_HEIGHT?RESPONSIVE_WIDTH:a.width;
 let canvasHeight = RESPONSIVE_WIDTH && RESPONSIVE_HEIGHT?RESPONSIVE_HEIGHT:a.height;
 
-let kindOfHalf = SMOOTH_COLOR_TERRAIN && !HALF_IS_HALF?.36:.3;
+let kindOfHalf = SMOOTH_COLOR_TERRAIN && !HALF_IS_HALF?SMOOTH_COLOR_TERRAIN:.3;
 
 if( OTHER_VEHICLES ) {
     if( MULTIPLE_VEHICLES ) {
@@ -249,9 +249,9 @@ while( j<trackLength ) {
                 0, // type (box)
                 kindOfHalf, // min lightness
                 SMOOTH_COLOR_TERRAIN
-                    ?j * .36
+                    ?j * SMOOTH_COLOR_TERRAIN
                     :j, // hue
-                36, // saturation
+                kindOfHalf*100, // saturation
                 CENTERED_ROAD?-499:-98, // x
                 998, // width
     
@@ -285,7 +285,7 @@ while( j<trackLength ) {
                 0, // type (box)
                 kindOfHalf, // min lightness
                 SMOOTH_COLOR_TERRAIN
-                    ?j * .36
+                    ?j * SMOOTH_COLOR_TERRAIN
                     :j, // hue
                 49, // saturation
                 CENTERED_ROAD?-499:-98, // x
@@ -314,7 +314,7 @@ while( j<trackLength ) {
             0, // type (box)
             kindOfHalf, // min lightness
             SMOOTH_COLOR_TERRAIN
-                ?j * .36
+                ?j * SMOOTH_COLOR_TERRAIN
                 :j, // hue
             36, // saturation
             CENTERED_ROAD?-499:-98, // x
@@ -339,7 +339,7 @@ while( j<trackLength ) {
             0, // type (box)
             kindOfHalf, // min lightness
             SMOOTH_COLOR_TERRAIN
-                ?j * .36
+                ?j * SMOOTH_COLOR_TERRAIN
                 :j, // hue
             36, // saturation
             -998, // x
@@ -348,7 +348,7 @@ while( j<trackLength ) {
             0, // type (box)
             kindOfHalf, // min lightness
             SMOOTH_COLOR_TERRAIN
-                ?j * .36
+                ?j * SMOOTH_COLOR_TERRAIN
                 :j, // hue
             36, // saturation
             roadWidth, // x
@@ -374,7 +374,7 @@ while( j<trackLength ) {
         zCurrent = randomValue;
     }
     if( SCENERY ) {
-        if( USE_EMOJIS && (zCurrent > .8 && RANDOM_SCENERY_PLACEMENT || !RANDOM_SCENERY_PLACEMENT && !(j%9) || !j && CHECKERED_FLAG) ) {
+        if( USE_EMOJIS && (<any>(zCurrent > .8 && RANDOM_SCENERY_PLACEMENT) | <any>(!RANDOM_SCENERY_PLACEMENT && !(j%9)) | <any>(!j && CHECKERED_FLAG)) ) {
             if( RANDOM_SCENERY_PLACEMENT ) {
                 yScale = zCurrent;
                 zCurrent *= 9;
@@ -543,18 +543,16 @@ if( !STORE_X_ROTATION ) {
 
 // render and update
 f = (now: number) => {
-    if( REQUEST_ANIMATION_FRAME ) {
-        requestAnimationFrame(f);
+    if( SET_TIME_OUT_INTERVAL ) {
+        diff = SET_TIME_OUT_INTERVAL;
     } else {
-        let t = 40;
-        setTimeout(f, t);
-        now = then + t;
+        requestAnimationFrame(f);
+        diff = now - then;
+        if( MAX_DIFF && diff > MAX_DIFF ) {
+            diff = MAX_DIFF;
+        }
     }
     // if( now && then ) {
-        diff = now - then;
-        if( MAX_DIFF && diff > 99 ) {
-            diff = 99;
-        }
     // } else {
     //     diff = 0;
     // }
@@ -569,7 +567,7 @@ f = (now: number) => {
     }
     let dYRot = yRotCurrent - yRotTarget;
     let slowingFactor: number;
-    if( xCurrent > 0 && xCurrent < roadWidth && (!keys['l'] || !SPEED_CONTROL) || !LEFT_RIGHT_CONTROL ) {
+    if( <any>(xCurrent > 0) & <any>(xCurrent < roadWidth) & <any>(!keys['l'] /*|| !SPEED_CONTROL*/) || !LEFT_RIGHT_CONTROL ) {
         slowingFactor = 5e3;
     } else {
         if( FAST_SLOW ) {
@@ -621,7 +619,7 @@ f = (now: number) => {
                 let vehicleX = vehicles[j++];
                 let vehicleZ = vehicles[j];
                 let oldFrame = track[(vehicleZ+1 | 0)%trackLength];
-                if( now ) {
+                if( then ) {
                     oldFrame.splice(
                         sceneryOffset, 
                         USE_EMOJIS
@@ -712,7 +710,7 @@ f = (now: number) => {
             }    
         } else {
             scenery = track[(vehicleZ | 0)%trackLength];
-            if( now ) {
+            if( then ) {
                 scenery.splice(
                     sceneryOffset, 
                     USE_EMOJIS
@@ -1073,7 +1071,15 @@ f = (now: number) => {
         c.fillStyle = '#fff';
         c.fillRect(0, 0, canvasWidth, canvasHeight);
     }
-
-    then = now;
+    if( SET_TIME_OUT_INTERVAL ) {
+        then += diff;
+    } else {
+        then = now;
+    }
 }
-f(0);
+
+if(SET_TIME_OUT_INTERVAL ) {
+    setInterval(f, SET_TIME_OUT_INTERVAL);
+} else {
+    f(0);
+}
