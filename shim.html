@@ -2,7 +2,7 @@
 <html>
   <!-- note: your demo in this shim runs in an iframe with this content: https://gist.github.com/qfox/3cccc4f36c8319e09bb7 -->
   <!--
-  (c) js1k.com 2018
+  (c) js1k.com 2019
   Note: submissions belong to their respective owner, do not copy without their consent
   -->
   <head>
@@ -12,9 +12,9 @@
   content="
     connect-src              'none'                                                             ;
     default-src              'none'                                                             ;
-    font-src                 'none'                                                             ;
+    font-src                 'self'                                                             ;
     frame-src                'self'            data:                                            ;
-    child-src                'self'            data:                                            ;
+    worker-src                'self'            data:                                            ;
     img-src                  'self'            data:            ssl.google-analytics.com        ;
     media-src                data:                                                              ;
     object-src               data:                                                              ;
@@ -24,10 +24,10 @@
   help="please report csp-related problems to valid demos!"
 >
 
-    <title>JS1k 2018 - NNNN - TITLE</title>
+    <title>JS1k 2019 - NNNN - TITLE</title>
     <meta name="author" content="YOU">
     <link rel="icon" type="image/png" href="https://js1k.com/favicon.png">
-    <link rel="canonical" href="https://js1k.com/2018-coins/demo/NNNN">
+    <link rel="canonical" href="https://js1k.com/2019-x/demo/NNNN">
     <link rel="shortlink" href="https://js1k.com/NNNN">
     <script>
       // GA
@@ -53,7 +53,7 @@
       <div>
         <h1>
           <a href="https://js1k.com/">JS1k</a>
-          <a href="https://js1k.com/2018-coins">2018</a>
+          <a href="https://js1k.com/2019-x">2019</a>
           <strong></strong> demo
           &mdash;
           "TITLE" by YOU
@@ -67,9 +67,9 @@
           &mdash;
           1024 bytes
           &mdash;
-          <a href="https://js1k.com/2018-coins/details/NNNN">demo details</a>
+          <a href="https://js1k.com/2019-x/details/NNNN">demo details</a>
           &mdash;
-          <a href="https://js1k.com/2018-coins/demos">list of demos</a>
+          <a href="https://js1k.com/2019-x/demos">list of demos</a>
           &mdash;
           <a href="https://js1k.com/NNNN" title="short link for your mobile devices" rel="nofollow">js1k.com/NNNN</a>
           <time datetime="NOW" pubdate>NOW</time>
@@ -129,9 +129,9 @@
       // true enables webgl shim (exposes `g`), false enables canvas shim (exposes `c`)
       var TOKEN_WEBGL = false;
       // px, 0 means always 100%
-      var TOKEN_MAX_WIDTH = 0;
+      var TOKEN_MAX_WIDTH = 998;
       // px, 0 means always 100%
-      var TOKEN_MAX_HEIGHT = 0;
+      var TOKEN_MAX_HEIGHT = 998;
       // should the size be smaller than specified if viewport is smaller?
       var TOKEN_MAX_100P = true;
       // only if width<100%

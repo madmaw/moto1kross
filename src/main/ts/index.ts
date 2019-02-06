@@ -61,7 +61,7 @@ const SMOOTH_COLOR_TERRAIN = true || ALL_ON?.35:0;
 // should scenery colour rotate perfectly back to 0
 const SMOOTH_COLOR_SCENERY = false || ALL_ON;
 // correct the ligtness to 100 in distance
-const CORRECT_LIGHTNESS = false || ALL_ON; // 2 bytes
+const CORRECT_LIGHTNESS = true || ALL_ON; // 2 bytes
 // do not allow really big FPS jumps
 const MAX_DIFF = false || ALL_ON?98:0;
 // correct frame positioning for x and z rotation
@@ -131,15 +131,11 @@ xRotCurrent = 0;
 yRotCurrent = 0;
 yTrackRotation = 0;
 zTrackRotation = 0;
+j=0;
 if( !RANDOM_SCENERY_PLACEMENT || !SCENERY ) {
     zCurrent = 0;
 } 
 
-if( CAN_GO_LEFT_AT_START ) {
-    yTargetTrackRotation = .5;
-} else {
-    yTargetTrackRotation = 0;
-}
 
 
 roadWidth = 4;
@@ -154,7 +150,6 @@ let vehicleCharacter =
 trackLength = 998;
 // 98 = the last two characters of the escaped car character \ud83d\ude98
 lookAhead = 98;
-track = [];
 vehicles = [];
 
 let sceneryCharacter = '🌴';
@@ -181,7 +176,6 @@ if( X_ROTATION && Z_ROTATION && STORE_X_ROTATION ) {
     sceneryOffset = 1;
 }
 
-c.globalCompositeOperation = 'destination-over'
 let canvasWidth = RESPONSIVE_WIDTH && RESPONSIVE_HEIGHT?RESPONSIVE_WIDTH:a.width;
 let canvasHeight = RESPONSIVE_WIDTH && RESPONSIVE_HEIGHT?RESPONSIVE_HEIGHT:a.height;
 
@@ -197,15 +191,25 @@ if( OTHER_VEHICLES ) {
                 j * 9
             );
         }        
+        j=0;
     } else {
         vehicleX = kindOfHalf;
         vehicleZ = 0;
     }
 }
+if( CAN_GO_LEFT_AT_START ) {
+    yTargetTrackRotation = kindOfHalf;
+    xCurrent = kindOfHalf; // roadWidth/2
+} else {
+    yTargetTrackRotation = 0;
+    xCurrent = 2; // roadWidth/2
+}
+yCurrent = kindOfHalf;
 
+c.globalCompositeOperation = 'destination-over'
+track = [];
 
 // create the track
-j=0;
 while( j<trackLength ) {
     // assumes 360/trackLength = .36
     let minLightness = !j && LAP_MARKER
@@ -533,8 +537,6 @@ if( LEFT_RIGHT_CONTROL || SPEED_CONTROL ) {
 
 
 
-xCurrent = 2; // roadWidth/2
-yCurrent = .5;
 if( !STORE_X_ROTATION ) {
     randomValue /= 98;
 }

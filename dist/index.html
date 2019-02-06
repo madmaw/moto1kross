@@ -2,7 +2,7 @@
 <html>
   <!-- note: your demo in this shim runs in an iframe with this content: https://gist.github.com/qfox/3cccc4f36c8319e09bb7 -->
   <!--
-  (c) js1k.com 2018
+  (c) js1k.com 2019
   Note: submissions belong to their respective owner, do not copy without their consent
   -->
   <head>
@@ -12,9 +12,9 @@
   content="
     connect-src              'none'                                                             ;
     default-src              'none'                                                             ;
-    font-src                 'none'                                                             ;
+    font-src                 'self'                                                             ;
     frame-src                'self'            data:                                            ;
-    child-src                'self'            data:                                            ;
+    worker-src                'self'            data:                                            ;
     img-src                  'self'            data:            ssl.google-analytics.com        ;
     media-src                data:                                                              ;
     object-src               data:                                                              ;
@@ -24,10 +24,10 @@
   help="please report csp-related problems to valid demos!"
 >
 
-    <title>JS1k 2018 - NNNN - TITLE</title>
+    <title>JS1k 2019 - NNNN - TITLE</title>
     <meta name="author" content="YOU">
     <link rel="icon" type="image/png" href="https://js1k.com/favicon.png">
-    <link rel="canonical" href="https://js1k.com/2018-coins/demo/NNNN">
+    <link rel="canonical" href="https://js1k.com/2019-x/demo/NNNN">
     <link rel="shortlink" href="https://js1k.com/NNNN">
     <script>
       // GA
@@ -53,7 +53,7 @@
       <div>
         <h1>
           <a href="https://js1k.com/">JS1k</a>
-          <a href="https://js1k.com/2018-coins">2018</a>
+          <a href="https://js1k.com/2019-x">2019</a>
           <strong></strong> demo
           &mdash;
           "TITLE" by YOU
@@ -67,9 +67,9 @@
           &mdash;
           1024 bytes
           &mdash;
-          <a href="https://js1k.com/2018-coins/details/NNNN">demo details</a>
+          <a href="https://js1k.com/2019-x/details/NNNN">demo details</a>
           &mdash;
-          <a href="https://js1k.com/2018-coins/demos">list of demos</a>
+          <a href="https://js1k.com/2019-x/demos">list of demos</a>
           &mdash;
           <a href="https://js1k.com/NNNN" title="short link for your mobile devices" rel="nofollow">js1k.com/NNNN</a>
           <time datetime="NOW" pubdate>NOW</time>
@@ -129,18 +129,18 @@
       // true enables webgl shim (exposes `g`), false enables canvas shim (exposes `c`)
       var TOKEN_WEBGL = false;
       // px, 0 means always 100%
-      var TOKEN_MAX_WIDTH = 0;
+      var TOKEN_MAX_WIDTH = 998;
       // px, 0 means always 100%
-      var TOKEN_MAX_HEIGHT = 0;
+      var TOKEN_MAX_HEIGHT = 998;
       // should the size be smaller than specified if viewport is smaller?
-      var TOKEN_MAX_100P = true;
+      var TOKEN_MAX_100P = false;
       // only if width<100%
       var TOKEN_CENTER_CANVAS = true;
       // "press" reload button on orientation change?
       var TOKEN_RELOAD_ONORIENTATIONCHANGE = true;
     </script>
     <script type='demo'>
-v={};C=t=D=H=r=p=n=m=l=k=f=e=0;w=[];c.globalCompositeOperation="destination-over";for(A=y=0;998>A;){N=A?(A/6|0)%2/9:1;I=Math.random();O=(Math.cos(A/98)-1)/98+H;A&&!(A%49)&&98*I&1&&(H=(I-C)/49,C=I);D+=(H-D)/9;x=[O,H,D,0,N,0,0,0,4,0,.35,.35*A,35,-499,998];w[A++]=x;A%3&&x.splice(3,0,0,1,0,0,2,.1);A%9||(F=A%2?8:-6,x.splice(3,0,4,.35,A+98,98,F,2,3,1,0,0,9,F+1,.1,1,8,.35,-A,98,4*I,1,1))}onkeydown=(g)=>{v[g.key]=1};onkeyup=(g)=>{v[g.key]=0};u=2;setInterval(()=>{g=t|0;r+=35*((v.a|0)-(v.d|0))*(v.l|2)/4E3;q=r-l;e+=35*((v.w|0)/5E4-e/(0<u&4>u&!v.l?5E3:998));t+=35*Math.cos(q)*e;u-=35*Math.sin(q)*e;(t|0)!=g&&(g=w[g%998],p=k,k-=g[0],l-=g[1],n=m,m-=g[2]);x=w[(y|0)%998];f&&x.splice(3,35);y+=35/(9+y-t);x=w[(y|0)%998];x.splice(3,0,.9,1,0,0,.4,1,.3,1,.5,0,98,.3,1.2,.5,.7,.35,0,98,.2,1.4,.6,1,y%.35,0,0,.3,.3,1,1,y%.35,0,0,1.2,.3,1);c.clearRect(0,0,998,998);z=0;g=t-(t|0);q=(k-p)*g;B=r-l;for(h=(m-n)*g,J=-u-g*Math.sin(B),K=.5-g*Math.sin(q);98>z;){z++;G=998/(z-g)*Math.cos(B);J+=Math.tan(B);K+=Math.sin(q);x=w[(t+z|0)%998];for(A=3;A<x.length;){M=x[A++];E=x[A++];L=z*(1-E)+98*E;c.fillStyle="hsl("+x[A++]+","+x[A++]+"%,"+L+"%)";c.setTransform(G,0,0,G,499,499);c.transform(Math.cos(h),Math.sin(h),-Math.sin(h),Math.cos(h),J*Math.cos(h)-K*Math.sin(h),K*Math.cos(h)+J*Math.sin(h));L=x[A++];P=x[A++];c.fillRect(L,-M,P,M?x[A++]:9);c.setTransform(1,0,0,1,0,0)}q+=x[0];B+=x[1];h+=x[2]}f+=35},35);
+v={};C=y=t=A=D=H=r=p=n=m=l=k=f=e=0;u=2;c.globalCompositeOperation="destination-over";for(w=[];998>A;){N=A?(A/6|0)%2/9:1;I=Math.random();O=(Math.cos(A/98)-1)/98+H;A&&!(A%49)&&98*I&1&&(H=(I-C)/49,C=I);D+=(H-D)/9;x=[O,H,D,0,N,0,0,0,4,0,.35,.35*A,35,-499,998];w[A++]=x;A%3&&x.splice(3,0,0,1,0,0,2,.1);A%9||(F=A%2?8:-6,x.splice(3,0,4,.35,A+98,98,F,2,3,1,0,0,9,F+1,.1,1,8,.35,-A,98,4*I,1,1))}onkeydown=(g)=>{v[g.key]=1};onkeyup=(g)=>{v[g.key]=0};setInterval(()=>{g=t|0;r+=35*((v.a|0)-(v.d|0))*(v.l|2)/4E3;q=r-l;e+=35*((v.w|0)/5E4-e/(0<u&4>u&!v.l?5E3:998));t+=35*Math.cos(q)*e;u-=35*Math.sin(q)*e;(t|0)!=g&&(g=w[g%998],p=k,k-=g[0],l-=g[1],n=m,m-=g[2]);x=w[(y|0)%998];f&&x.splice(3,35);y+=35/(9+y-t);x=w[(y|0)%998];x.splice(3,0,.9,1,0,0,.4,1,.3,1,.5,0,98,.3,1.2,.5,.7,.35,0,98,.2,1.4,.6,1,y%.35,0,0,.3,.3,1,1,y%.35,0,0,1.2,.3,1);c.clearRect(0,0,998,998);z=0;g=t-(t|0);q=(k-p)*g;B=r-l;for(h=(m-n)*g,J=-u-g*Math.sin(B),K=.35-g*Math.sin(q);98>z;){z++;G=998/(z-g)*Math.cos(B);J+=Math.tan(B);K+=Math.sin(q);x=w[(t+z|0)%998];for(A=3;A<x.length;){M=x[A++];E=x[A++];L=z*(1-E)+98*E+2;c.fillStyle="hsl("+x[A++]+","+x[A++]+"%,"+L+"%)";c.setTransform(G,0,0,G,499,499);c.transform(Math.cos(h),Math.sin(h),-Math.sin(h),Math.cos(h),J*Math.cos(h)-K*Math.sin(h),K*Math.cos(h)+J*Math.sin(h));L=x[A++];P=x[A++];c.fillRect(L,-M,P,M?x[A++]:9);c.setTransform(1,0,0,1,0,0)}q+=x[0];B+=x[1];h+=x[2]}f+=35},35);
 </script>
     <script>
       (function(){var doc=document;var header=doc.getElementsByTagName("header")[0];var firstChild=header.firstChild;var p=doc.getElementsByClassName("p")[0];
